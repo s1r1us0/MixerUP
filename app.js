@@ -419,6 +419,15 @@ songFile.addEventListener('change', ({ target }) => {
   processSong(file);
 });
 
+// iOS WKWebView File Picker Touch Fix
+const songFileLabel = document.querySelector('label[for="songFile"]');
+if (songFileLabel) {
+  songFileLabel.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    if (songFile) songFile.click();
+  });
+}
+
 // Sayfa geneli sürükle-bırak koruması
 ['dragover', 'drop'].forEach(eventName => {
   window.addEventListener(eventName, e => e.preventDefault());

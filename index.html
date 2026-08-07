@@ -16,6 +16,11 @@
     <title>MixerUp — Ses ve Enstrüman Ayrıştırma Platformu</title>
     <link rel="stylesheet" href="style.css?v=1600" />
     <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('sw.js');
+        });
+      }
       var t = localStorage.getItem('mixerup-theme');
       if (t) document.documentElement.dataset.theme = t;
       function openGuide() {
@@ -114,7 +119,7 @@
         <h2>Ses Dosyası Yükleyin</h2>
         <p>Desteklenen Biçimler: MP3, WAV, M4A, FLAC • Maksimum 100 MB</p>
         <label class="primary-button" for="songFile">📁 Dosya Seçin</label>
-        <input id="songFile" type="file" accept="audio/*" hidden />
+        <input id="songFile" type="file" style="position:absolute;opacity:0;width:1px;height:1px;left:-9999px;" />
         <div class="device-options">
           <label for="deviceSelect" class="device-label">Donanım Tercihi:</label>
           <select id="deviceSelect" class="device-select">
@@ -317,6 +322,6 @@
     <audio id="drumsAudio"></audio>
     <audio id="bassAudio"></audio>
     <audio id="otherAudio"></audio>
-    <script src="app.js?v=1700"></script>
+    <script src="app.js?v=1900"></script>
   </body>
 </html>
