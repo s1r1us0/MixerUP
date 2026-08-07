@@ -16,13 +16,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Dependencies & Setup iOS
         run: |
           npm install
           npx cap add ios || true
-          npx cap copy ios
+          npx cap sync ios
 
       - name: Build iOS App with Xcode
         run: |
@@ -30,11 +30,11 @@ jobs:
           xcodebuild -project App.xcodeproj \
                      -scheme App \
                      -configuration Release \
-                     -sdk iphoneos \
+                     -destination 'generic/platform=iOS' \
                      -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO
+                     CODE_SIGNING_ALLOWED="NO" \
+                     CODE_SIGNING_REQUIRED="NO" \
+                     CODE_SIGN_IDENTITY=""
 
       - name: Create IPA Package
         run: |
