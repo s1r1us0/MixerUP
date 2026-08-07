@@ -18,17 +18,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install & Setup Capacitor iOS
+      - name: Install Dependencies & Setup iOS
         run: |
           npm install
-          npm install @capacitor/core @capacitor/ios @capacitor/cli
           npx cap add ios || true
-          npx cap sync ios
+          npx cap copy ios
 
-      - name: Build App with Xcode
+      - name: Build iOS App with Xcode
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace \
+          xcodebuild -project App.xcodeproj \
                      -scheme App \
                      -configuration Release \
                      -sdk iphoneos \
