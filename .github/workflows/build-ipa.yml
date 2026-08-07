@@ -2,47 +2,103 @@ name: Build MixerUp iOS IPA
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, ana, "*" ]
   workflow_dispatch:
 
 jobs:
-  build-ios:
+  build-ios-ipa:
     runs-on: macos-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Dependencies & Setup iOS
+      - name: Build Native iOS App Binary
         run: |
-          npm install
-          npx cap add ios || true
-          npx cap sync ios
+          mkdir -p build/App.app
+          mkdir -p build/App.app/www
+          
+          # Copy Web App Files
+          cp index.html style.css app.js manifest.json logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/www/ 2>/dev/null || true
 
-      - name: Build iOS App with Xcode
-        run: |
-          cd ios/App
-          xcodebuild -project App.xcodeproj \
-                     -scheme App \
-                     -configuration Release \
-                     -destination 'generic/platform=iOS' \
-                     -derivedDataPath build \
-                     CODE_SIGNING_ALLOWED="NO" \
-                     CODE_SIGNING_REQUIRED="NO" \
-                     CODE_SIGN_IDENTITY=""
+          # Create Info.plist
+          cat << 'EOF' > build/App.app/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>MixerUp</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.mixerup.app</string>
+              <key>CFBundleName</key>
+              <string>MixerUp</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>2.0.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>NSAppTransportSecurity</key>
+              <dict>
+                  <key>NSAllowsArbitraryLoads</key>
+                  <true/>
+              </dict>
+              <key>UIRequiresFullScreen</key>
+              <true/>
+              <key>UISupportedInterfaceOrientations</key>
+              <array>
+                  <string>UIInterfaceOrientationPortrait</string>
+              </array>
+          </dict>
+          </plist>
+          EOF
 
-      - name: Create IPA Package
-        run: |
+          # Create Swift Main Executable Code
+          cat << 'EOF' > main.swift
+          import UIKit
+          import WebKit
+
+          class AppDelegate: UIResponder, UIApplicationDelegate {
+              var window: UIWindow?
+              func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+                  window = UIWindow(frame: UIScreen.main.bounds)
+                  let vc = UIViewController()
+                  let webView = WKWebView(frame: vc.view.bounds)
+                  webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                  
+                  if let wwwUrl = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "www") {
+                      webView.loadFileURL(wwwUrl, allowingReadAccessTo: wwwUrl.deletingLastPathComponent())
+                  }
+                  vc.view.addSubview(webView)
+                  window?.rootViewController = vc
+                  window?.makeKeyAndVisible()
+                  return true
+              }
+          }
+
+          UIApplicationMain(
+              CommandLine.argc,
+              CommandLine.unsafeArgv,
+              nil,
+              NSStringFromClass(AppDelegate.self)
+          )
+          EOF
+
+          # Compile Swift Code to Native iOS Binary
+          xcrun -sdk iphoneos swiftc main.swift \
+            -target arm64-apple-ios13.0 \
+            -emit-executable \
+            -o build/App.app/MixerUp
+
+          # Package into Payload/MixerUp.ipa
           mkdir -p Payload
-          cp -r ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
+          cp -r build/App.app Payload/
           zip -r MixerUp.ipa Payload
 
-      - name: Upload IPA Artifact
+      - name: Upload MixerUp.ipa Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MixerUp-iOS-IPA
