@@ -22,8 +22,7 @@ jobs:
         run: |
           npm install
           npm install @capacitor/core @capacitor/ios @capacitor/cli
-          npx cap init MixerUp com.mixerup.app --web-dir .
-          npx cap add ios
+          npx cap add ios || true
           npx cap sync ios
 
       - name: Build App with Xcode
