@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build Native iOS App Binary
+      - name: Build Native Fullscreen iOS App Binary
         run: |
           mkdir -p build/App.app
           mkdir -p build/App.app/www
@@ -21,10 +21,10 @@ jobs:
           # Copy Web App Files
           cp index.html style.css app.js manifest.json logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/www/ 2>/dev/null || true
 
-          # Create Info.plist
+          # Create Info.plist with Fullscreen & Launchscreen configuration
           cat << 'EOF' > build/App.app/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.plist">
           <plist version="1.0">
           <dict>
               <key>CFBundleExecutable</key>
@@ -48,6 +48,10 @@ jobs:
               </dict>
               <key>UIRequiresFullScreen</key>
               <true/>
+              <key>UIStatusBarHidden</key>
+              <false/>
+              <key>UIViewControllerBasedStatusBarAppearance</key>
+              <false/>
               <key>UISupportedInterfaceOrientations</key>
               <array>
                   <string>UIInterfaceOrientationPortrait</string>
@@ -56,7 +60,7 @@ jobs:
           </plist>
           EOF
 
-          # Create Swift Main Executable Code
+          # Create Swift Edge-to-Edge Fullscreen Code
           cat << 'EOF' > main.swift
           import UIKit
           import WebKit
@@ -64,14 +68,27 @@ jobs:
           class AppDelegate: UIResponder, UIApplicationDelegate {
               var window: UIWindow?
               func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-                  window = UIWindow(frame: UIScreen.main.bounds)
+                  let bounds = UIScreen.main.bounds
+                  window = UIWindow(frame: bounds)
+                  
                   let vc = UIViewController()
-                  let webView = WKWebView(frame: vc.view.bounds)
+                  vc.view.backgroundColor = UIColor(red: 0.05, green: 0.07, blue: 0.09, alpha: 1.0)
+                  
+                  let config = WKWebViewConfiguration()
+                  config.allowsInlineMediaPlayback = true
+                  config.mediaTypesRequiringUserActionForPlayback = []
+                  
+                  let webView = WKWebView(frame: bounds, configuration: config)
                   webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                  webView.scrollView.contentInsetAdjustmentBehavior = .never
+                  webView.scrollView.bounces = false
+                  webView.isOpaque = false
+                  webView.backgroundColor = .clear
                   
                   if let wwwUrl = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "www") {
                       webView.loadFileURL(wwwUrl, allowingReadAccessTo: wwwUrl.deletingLastPathComponent())
                   }
+                  
                   vc.view.addSubview(webView)
                   window?.rootViewController = vc
                   window?.makeKeyAndVisible()
@@ -87,7 +104,7 @@ jobs:
           )
           EOF
 
-          # Compile Swift Code to Native iOS Binary
+          # Compile Swift Code to Native Fullscreen iOS Binary
           xcrun -sdk iphoneos swiftc main.swift \
             -target arm64-apple-ios13.0 \
             -emit-executable \
