@@ -19,12 +19,12 @@ jobs:
           mkdir -p build/App.app/www
           
           # Copy Web App Files
-          cp index.html style.css app.js manifest.json logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/www/ 2>/dev/null || true
+          cp index.html style.css app.js manifest.json sw.js logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/www/ 2>/dev/null || true
 
-          # Create Info.plist with Fullscreen & Launchscreen configuration
+          # Create Info.plist with UILaunchScreen to unlock modern iPhone resolutions
           cat << 'EOF' > build/App.app/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.plist">
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
               <key>CFBundleExecutable</key>
@@ -41,11 +41,15 @@ jobs:
               <string>1</string>
               <key>LSRequiresIPhoneOS</key>
               <true/>
+              <key>UILaunchScreen</key>
+              <dict/>
               <key>NSAppTransportSecurity</key>
               <dict>
                   <key>NSAllowsArbitraryLoads</key>
                   <true/>
               </dict>
+              <key>NSAppleMusicUsageDescription</key>
+              <string>MixerUp ses dosyalarını seçmeniz için izin gerektirir.</string>
               <key>UIRequiresFullScreen</key>
               <true/>
               <key>UIStatusBarHidden</key>
