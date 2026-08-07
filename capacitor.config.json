@@ -1,0 +1,14 @@
+{
+  "appId": "com.mixerup.app",
+  "appName": "MixerUp",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "ios": {
+    "contentInset": "always",
+    "allowsLinkPreview": false,
+    "scrollEnabled": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

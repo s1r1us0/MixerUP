@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MixerUp" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#0d1117" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="icon-192.png" />
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/ort.min.js"></script>
+    <title>MixerUp — Ses ve Enstrüman Ayrıştırma Platformu</title>
+    <link rel="stylesheet" href="style.css?v=1600" />
+    <script>
+      var t = localStorage.getItem('mixerup-theme');
+      if (t) document.documentElement.dataset.theme = t;
+      function openGuide() {
+        var m = document.getElementById('guideModal');
+        if (m) {
+          m.removeAttribute('hidden');
+          m.style.cssText = 'display:flex!important;opacity:1!important;pointer-events:auto!important;';
+        }
+      }
+      function closeGuide() {
+        var m = document.getElementById('guideModal');
+        if (m) {
+          m.style.cssText = 'display:none!important;opacity:0!important;pointer-events:none!important;';
+          setTimeout(function(){ m.setAttribute('hidden',''); }, 10);
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header>
+        <div class="brand-logo-wrap">
+          <img src="logo.png" alt="MixerUp Logo" class="brand-logo-img" />
+        </div>
+        <span class="beta">BETA</span>
+        <button id="guideBtn" class="guide-btn" onclick="openGuide()" title="Kullanım Kılavuzu">&#10067; Nasıl Kullanılır?</button>
+        <button id="themeToggle" class="theme-toggle" aria-label="Tema değiştir" title="Açık / Koyu Mod">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </header>
+
+      <section class="hero">
+        <p class="eyebrow">PROFESYONEL SES İŞLEME</p>
+        <h1>Müzik parçalarını bileşenlerine ayırın.</h1>
+        <p class="subtitle">Yapay zeka teknolojisi ile vokal, davul, bas ve diğer enstrüman kanallarını bağımsız olarak kontrol edin ve miksleyin.</p>
+      </section>
+
+      <section class="how-it-works">
+        <div><span>01</span><h3>Dosya Yükleme</h3><p>Ayrıştırmak istediğiniz ses dosyasını güvenli biçimde sisteme aktarın.</p></div>
+        <div><span>02</span><h3>Kanal Ayrıştırma</h3><p>Gelişmiş AI modeli ile vokal, davul, bas ve diğer enstrümanlar ayrıştırılır.</p></div>
+        <div><span>03</span><h3>Canlı Miksaj</h3><p>Ses seviyelerini anlık olarak ayarlayarak özel miksinizi oluşturun.</p></div>
+      </section>
+
+      <!-- In-Page Guide Card -->
+      <section id="inPageGuide" class="inpage-guide-card" hidden>
+        <div class="guide-header">
+          <h3>💡 Kullanım Kılavuzu & İpuçları</h3>
+          <button type="button" onclick="closeGuide()" class="close-guide-chip">✕ Kapat</button>
+        </div>
+        <div class="guide-steps">
+          <div class="guide-step">
+            <div class="step-num">1</div>
+            <div class="step-info">
+              <h4>📁 Dosya Yükleme & AI Ayrıştırma</h4>
+              <p>Sisteme MP3, WAV veya M4A dosyanızı yükleyin. Yapay zeka şarkıyı 4 bağımsız kanala (Vokal, Davul, Bas, Diğer) ayırır.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">2</div>
+            <div class="step-info">
+              <h4>🎛️ Kanal Miksajı & Efektler</h4>
+              <p>Her kanalı <strong>M (Mute)</strong> ile susturun veya <strong>S (Solo)</strong> ile tek dinleyin. Reverb, Echo ve 8D Spatial Audio efektlerini deneyin.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">3</div>
+            <div class="step-info">
+              <h4>🎼 Ton (Pitch Transpose) & Hız Ayarları</h4>
+              <p>Şarkının temposunu bozmadan tonunu <strong>-6♭ ile +6♯ semiton</strong> arası transpoze edin. Slider ile oynatma hızını ayarlayın.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">4</div>
+            <div class="step-info">
+              <h4>🔁 A-B Kesit Döngüsü (Pratik Modu)</h4>
+              <p>Şarkı çalarken <strong>A Koy</strong> ve <strong>B Koy</strong> butonlarına basarak İstediğiniz nakarat veya enstrüman bölümünü sürekli döngüye alın.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">5</div>
+            <div class="step-info">
+              <h4>⌨️ Klavye Kısayolları</h4>
+              <div class="kbd-list">
+                <span><kbd>Space</kbd> Oynat / Durdur</span>
+                <span><kbd>←</kbd> 5s Geri</span>
+                <span><kbd>→</kbd> 5s İleri</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="uploadCard" class="upload-card">
+        <div class="upload-icon">↑</div>
+        <h2>Ses Dosyası Yükleyin</h2>
+        <p>Desteklenen Biçimler: MP3, WAV, M4A, FLAC • Maksimum 100 MB</p>
+        <label class="primary-button" for="songFile">📁 Dosya Seçin</label>
+        <input id="songFile" type="file" accept="audio/*" hidden />
+        <div class="device-options">
+          <label for="deviceSelect" class="device-label">Donanım Tercihi:</label>
+          <select id="deviceSelect" class="device-select">
+            <option value="auto">Otomatik (Masaüstü Sunucu GPU/CPU)</option>
+            <option value="cuda">GPU (Masaüstü Ekran Kartı - En Hızlı)</option>
+            <option value="cpu">CPU (Masaüstü İşlemci)</option>
+            <option value="offline">📱 Cihaz İçi Offline Mod (Bilgisayarsız / Çevrimdışı WebAssembly AI)</option>
+          </select>
+        </div>
+        <p class="hint">Yüklenen ses dosyası 4 bağımsız kanala ayrıştırılacaktır. İşlem süresi donanım tercihinize ve dosya boyutuna bağlı olarak değişiklik gösterebilir.</p>
+        <div id="progressWrap" class="progress-wrap upload-progress" hidden aria-live="polite">
+          <div class="progress-label"><span id="progressText">Hazırlanıyor…</span><strong id="progressValue">0%</strong></div>
+          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        </div>
+      </section>
+
+      <section id="mixer" class="mixer" aria-label="Miks oynatıcı">
+        <div class="track-head">
+          <div class="album-art"><span>♫</span></div>
+          <div class="track-details">
+            <p class="eyebrow">MİKS KONTROL PANELİ</p>
+            <h2 id="songTitle">Örnek Ses Parçası</h2>
+            <p id="songMeta">4 kanal hazır</p>
+          </div>
+          <button id="playButton" class="play-button" aria-label="Oynat"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+        </div>
+
+        <div class="timeline-wrap">
+          <span id="currentTime">0:00</span>
+          <div class="waveform-container">
+            <canvas id="waveformCanvas" width="700" height="36" class="waveform-canvas"></canvas>
+            <input id="timeline" type="range" min="0" max="100" value="0" aria-label="Şarkı konumu" />
+          </div>
+          <span id="duration">0:00</span>
+        </div>
+
+        <div class="loop-bar">
+          <span class="bar-label">A-B Kesit Döngüsü:</span>
+          <button id="setLoopABtn" class="loop-btn" title="Şu anki zamanı Başlangıç (A) belirle">🅰️ A Koy</button>
+          <button id="setLoopBBtn" class="loop-btn" title="Şu anki zamanı Bitiş (B) belirle">🅱️ B Koy</button>
+          <button id="toggleLoopBtn" class="loop-btn toggle" title="Kesit döngüsünü Aç / Kapat">🔁 Döngü: KAPALI</button>
+          <button id="clearLoopBtn" class="loop-btn reset" title="Döngü noktalarını sıfırla">✖ Temizle</button>
+          <span id="loopBadge" class="loop-badge" hidden>0:00 ➔ 0:00</span>
+        </div>
+
+        <div class="controls-bar">
+          <div class="presets">
+            <span class="bar-label">Hızlı Modlar:</span>
+            <button class="preset-btn" data-preset="karaoke" title="Vokali kapatır">🎤 Karaoke</button>
+            <button class="preset-btn" data-preset="acapella" title="Sadece vokali açık bırakır">🗣️ Acapella</button>
+            <button class="preset-btn" data-preset="drumless" title="Davulu kapatır">🥁 Drumless</button>
+            <button class="preset-btn" data-preset="bassless" title="Bası kapatır">🎸 Bassless</button>
+            <button class="preset-btn reset" data-preset="reset" title="Tüm sesleri varsayılana getirir">🔄 Sıfırla</button>
+          </div>
+          <div class="speed-control">
+            <span class="bar-label">Oynatma Hızı:</span>
+            <input id="speedSlider" type="range" min="0.5" max="2.0" step="0.05" value="1.0" aria-label="Oynatma hızı" />
+            <output id="speedValue">1.0x</output>
+          </div>
+        </div>
+
+        <!-- Ana Efekt Çubuğu (Master FX) -->
+        <div class="master-fx-bar">
+          <div class="pitch-control">
+            <span class="bar-label">Ton (Pitch):</span>
+            <button id="pitchDownBtn" class="pitch-step-btn" title="1 Semiton Pesleştir (-1♭)">-1♭</button>
+            <input id="pitchSlider" type="range" min="-6" max="6" step="1" value="0" aria-label="Ton Transpoze" />
+            <button id="pitchUpBtn" class="pitch-step-btn" title="1 Semiton Dikleştir (+1♯)">+1♯</button>
+            <output id="pitchValue">0 ST</output>
+          </div>
+          <span class="bar-label">Efektler:</span>
+          <label class="fx-chip"><input type="checkbox" id="reverbToggle" /> 🏛️ Reverb</label>
+          <label class="fx-chip"><input type="checkbox" id="echoToggle" /> 📻 Echo</label>
+          <label class="fx-chip"><input type="checkbox" id="spatialToggle" /> 🎧 8D Audio</label>
+        </div>
+
+        <div class="channels">
+          <article class="channel" data-channel="vocal">
+            <div class="channel-icon vocal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></div>
+            <div class="channel-name"><strong>Vokal <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Ana ses kaydı</span></div>
+            <div class="channel-actions">
+              <button class="mini-button mute" aria-label="Vokali sustur" title="Sustur (Mute)">M</button>
+              <button class="mini-button solo" aria-label="Vokali tek dinle" title="Solo Dinle">S</button>
+              <button class="mini-button download" aria-label="Vokal kanalını indir" title="Vokal kanalını indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+            </div>
+            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Vokal ses seviyesi" />
+            <div class="vu-meter" title="Canlı Vokal Seviyesi"><div class="vu-bar"></div></div>
+            <output>85%</output>
+          </article>
+          <article class="channel" data-channel="drums">
+            <div class="channel-icon drums-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6"/><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M6 8l6-4 6 4"/></svg></div>
+            <div class="channel-name"><strong>Davul <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Ritim ve perküsyon</span></div>
+            <div class="channel-actions">
+              <button class="mini-button mute" aria-label="Davulu sustur" title="Sustur (Mute)">M</button>
+              <button class="mini-button solo" aria-label="Davulu tek dinle" title="Solo Dinle">S</button>
+              <button class="mini-button download" aria-label="Davul kanalını indir" title="Davul kanalını indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+            </div>
+            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Davul ses seviyesi" />
+            <div class="vu-meter" title="Canlı Davul Seviyesi"><div class="vu-bar"></div></div>
+            <output>85%</output>
+          </article>
+          <article class="channel" data-channel="bass">
+            <div class="channel-icon bass-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M2 12h4"/><path d="M2 16h4"/></svg></div>
+            <div class="channel-name"><strong>Bas <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Alçak frekanslar (Bass)</span></div>
+            <div class="channel-actions">
+              <button class="mini-button mute" aria-label="Bası sustur" title="Sustur (Mute)">M</button>
+              <button class="mini-button solo" aria-label="Bası tek dinle" title="Solo Dinle">S</button>
+              <button class="mini-button download" aria-label="Bas kanalını indir" title="Bas kanalını indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+            </div>
+            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Bas ses seviyesi" />
+            <div class="vu-meter" title="Canlı Bas Seviyesi"><div class="vu-bar"></div></div>
+            <output>85%</output>
+          </article>
+          <article class="channel" data-channel="other">
+            <div class="channel-icon other-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12v6"/><path d="M10 12v6"/><path d="M14 12v6"/><path d="M18 12v6"/></svg></div>
+            <div class="channel-name"><strong>Diğer Enstrümanlar <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Gitar, piyano, synth ve yaylılar</span></div>
+            <div class="channel-actions">
+              <button class="mini-button mute" aria-label="Diğer enstrümanları sustur" title="Sustur (Mute)">M</button>
+              <button class="mini-button solo" aria-label="Diğer enstrümanları tek dinle" title="Solo Dinle">S</button>
+              <button class="mini-button download" aria-label="Diğer enstrümanlar kanalını indir" title="Diğer kanalı indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+            </div>
+            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Diğer enstrümanlar ses seviyesi" />
+            <div class="vu-meter" title="Canlı Diğer Enstrümanlar Seviyesi"><div class="vu-bar"></div></div>
+            <output>85%</output>
+          </article>
+        </div>
+
+        <div class="export-bar">
+          <div class="format-selection">
+            <label for="exportFormat">Biçim:</label>
+            <select id="exportFormat" class="format-select">
+              <option value="wav">WAV (Yüksek Kalite)</option>
+              <option value="mp3">MP3 (Küçük Boyut)</option>
+            </select>
+          </div>
+          <button id="downloadMixBtn" class="export-btn primary" disabled>⚡ Miksi İndir</button>
+          <button id="downloadZipBtn" class="export-btn secondary" disabled>📦 Tümünü ZIP İndir</button>
+        </div>
+        <p id="status" class="status">Bir ses dosyası yükleyiniz; 4 kanal otomatik olarak hazırlanacaktır.</p>
+      </section>
+    </main>
+
+    <!-- Öğretici Modal Kılavuzu -->
+    <div id="guideModal" class="modal-overlay" hidden>
+      <div class="modal-card">
+        <button id="closeGuideBtn" class="close-modal-btn" onclick="closeGuide()" aria-label="Kapat">✕</button>
+        <div class="modal-header">
+          <span class="modal-badge">KULLANIM KILAVUZU</span>
+          <h2>MixerUp Nasıl Kullanılır?</h2>
+          <p>Stüdyo kalitesinde ses ayrıştırma ve miksaj rehberi</p>
+        </div>
+        <div class="guide-steps">
+          <div class="guide-step">
+            <div class="step-num">1</div>
+            <div class="step-info">
+              <h4>📁 Dosya Yükleme & AI Ayrıştırma</h4>
+              <p>Sisteme MP3, WAV veya M4A dosyanızı yükleyin. Yapay zeka modeli (Demucs) şarkıyı 4 bağımsız kanala (Vokal, Davul, Bas, Diğer) ayırır.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">2</div>
+            <div class="step-info">
+              <h4>🎛️ Kanal Miksajı & Efektler</h4>
+              <p>Her kanalı <strong>M (Mute)</strong> ile susturun veya <strong>S (Solo)</strong> ile tek dinleyin. Reverb, Echo ve 8D Spatial Audio efektlerini deneyin.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">3</div>
+            <div class="step-info">
+              <h4>🎼 Ton (Pitch Transpose) & Hız Ayarları</h4>
+              <p>Şarkının temposunu bozmadan tonunu <strong>-6♭ ile +6♯ semiton</strong> arası transpoze edin. Slider ile oynatma hızını ayarlayın.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">4</div>
+            <div class="step-info">
+              <h4>🔁 A-B Kesit Döngüsü (Pratik Modu)</h4>
+              <p>Şarkı çalarken <strong>A Koy</strong> ve <strong>B Koy</strong> butonlarına basarak İstediğiniz nakarat veya enstrüman bölümünü sürekli döngüye alın.</p>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">5</div>
+            <div class="step-info">
+              <h4>⌨️ Klavye Kısayolları</h4>
+              <div class="kbd-list">
+                <span><kbd>Space</kbd> Oynat / Durdur</span>
+                <span><kbd>←</kbd> 5s Geri</span>
+                <span><kbd>→</kbd> 5s İleri</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="gotItBtn" class="primary-button modal-start-btn" onclick="closeGuide()">Anladım, Başlayalım! 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <audio id="vocalAudio"></audio>
+    <audio id="drumsAudio"></audio>
+    <audio id="bassAudio"></audio>
+    <audio id="otherAudio"></audio>
+    <script src="app.js?v=1700"></script>
+  </body>
+</html>
