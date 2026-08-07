@@ -20,8 +20,9 @@ jobs:
           
           # Copy Web App Files
           cp index.html style.css app.js manifest.json sw.js logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/www/ 2>/dev/null || true
+          cp logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/ 2>/dev/null || true
 
-          # Create Info.plist with UILaunchScreen to unlock modern iPhone resolutions
+          # Create Info.plist with App Icon, UILaunchScreen & MP3 File Picker permissions
           cat << 'EOF' > build/App.app/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -39,6 +40,13 @@ jobs:
               <string>2.0.0</string>
               <key>CFBundleVersion</key>
               <string>1</string>
+              <key>CFBundleIconFiles</key>
+              <array>
+                  <string>apple-touch-icon.png</string>
+                  <string>logo.png</string>
+                  <string>icon-192.png</string>
+                  <string>icon-512.png</string>
+              </array>
               <key>LSRequiresIPhoneOS</key>
               <true/>
               <key>UILaunchScreen</key>
@@ -50,6 +58,8 @@ jobs:
               </dict>
               <key>NSAppleMusicUsageDescription</key>
               <string>MixerUp ses dosyalarını seçmeniz için izin gerektirir.</string>
+              <key>NSPhotoLibraryUsageDescription</key>
+              <string>MixerUp dosya seçmeniz için izin gerektirir.</string>
               <key>UIRequiresFullScreen</key>
               <true/>
               <key>UIStatusBarHidden</key>
