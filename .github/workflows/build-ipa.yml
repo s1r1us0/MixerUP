@@ -18,10 +18,12 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install & Sync Capacitor
+      - name: Install & Setup Capacitor iOS
         run: |
           npm install
-          npx cap add ios || true
+          npm install @capacitor/core @capacitor/ios @capacitor/cli
+          npx cap init MixerUp com.mixerup.app --web-dir .
+          npx cap add ios
           npx cap sync ios
 
       - name: Build App with Xcode
