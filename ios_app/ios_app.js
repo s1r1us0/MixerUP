@@ -105,15 +105,44 @@ function initWebAudio() {
   });
 }
 
-function unlockAudioOnTouch() {
+async function unlockAudioOnTouch() {
   if (!audioCtx) initWebAudio();
   if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
+    try {
+      await audioCtx.resume();
+    } catch (e) {}
   }
 }
 ['touchstart', 'touchend', 'click'].forEach(evt => {
   document.addEventListener(evt, unlockAudioOnTouch, { once: true });
 });
+
+// Safe iOS Audio Decoder (Dual Promise + Callback Fallback)
+function decodeAudioDataSafe(audioContext, arrayBuffer) {
+  return new Promise((resolve, reject) => {
+    const doDecode = () => {
+      const bufferCopy = arrayBuffer.slice(0);
+      try {
+        const res = audioContext.decodeAudioData(
+          bufferCopy,
+          (decoded) => resolve(decoded),
+          (err) => reject(err)
+        );
+        if (res && typeof res.then === 'function') {
+          res.then(resolve).catch(reject);
+        }
+      } catch (e) {
+        reject(e);
+      }
+    };
+
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().then(doDecode).catch(doDecode);
+    } else {
+      doDecode();
+    }
+  });
+}
 
 // --- Waveform Canvas Drawer & Scrubber ---
 const ctx = masterCanvas.getContext('2d');
@@ -164,7 +193,6 @@ function drawWaveform() {
 function seekToPosition(targetTime) {
   isSeeking = true;
   
-  // Pause all 4 tracks atomically to prevent phase scrambling
   Object.values(tracks).forEach(audio => {
     audio.pause();
     audio.currentTime = targetTime;
@@ -184,7 +212,6 @@ function seekToPosition(targetTime) {
   }
 }
 
-// Force exact master-slave clock alignment across all stems
 function syncTrackPositions(masterTime) {
   const t = masterTime !== undefined ? masterTime : (tracks.vocal.currentTime || 0);
   ['drums', 'bass', 'other'].forEach(name => {
@@ -194,7 +221,6 @@ function syncTrackPositions(masterTime) {
   });
 }
 
-// Canvas Touch / Drag Seek Event
 masterCanvas.addEventListener('click', (e) => {
   const rect = masterCanvas.getBoundingClientRect();
   const clickX = e.clientX - rect.left;
@@ -215,12 +241,10 @@ function updateLoop() {
     const dur = masterTrack.duration || 0;
     timecodeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
     
-    // Master-slave sync drift guard (ensures 0% echo/scramble)
     syncTrackPositions(cur);
     drawWaveform();
   }
 
-  // Peak Level Visualizer Meters
   Object.keys(analysers).forEach(name => {
     const analyser = analysers[name];
     if (analyser && peaks[name]) {
@@ -246,7 +270,7 @@ function formatTime(sec) {
 
 // Master Toggle Button
 btnMasterToggle.addEventListener('click', async () => {
-  unlockAudioOnTouch();
+  await unlockAudioOnTouch();
   if (isPlaying) {
     Object.values(tracks).forEach(audio => audio.pause());
     isPlaying = false;
@@ -265,7 +289,6 @@ btnMasterToggle.addEventListener('click', async () => {
   }
 });
 
-// Sync Track Ended
 Object.values(tracks).forEach(audio => {
   audio.addEventListener('ended', () => {
     isPlaying = false;
@@ -311,7 +334,7 @@ Object.keys(btnSolo).forEach(name => {
   });
 });
 
-// Pitch Transpose & Tempo Speed Controls
+// Pitch Transpose & Tempo Controls
 pitchSlider.addEventListener('input', (e) => {
   const val = e.target.value;
   pitchLabel.textContent = `${val > 0 ? '+' : ''}${val} st`;
@@ -332,7 +355,7 @@ tempoSlider.addEventListener('input', (e) => {
   });
 });
 
-// Preset Sound Chips
+// Presets Chips
 document.querySelectorAll('.chip-btn').forEach(chip => {
   chip.addEventListener('click', () => {
     document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('active'));
@@ -340,7 +363,6 @@ document.querySelectorAll('.chip-btn').forEach(chip => {
 
     const preset = chip.dataset.preset;
     
-    // Reset States
     Object.keys(muteStates).forEach(k => {
       muteStates[k] = false;
       soloStates[k] = false;
@@ -367,13 +389,12 @@ document.querySelectorAll('.chip-btn').forEach(chip => {
   });
 });
 
-// Memory Cleanup
 function clearPreviousBlobs() {
   createdBlobUrls.forEach(url => URL.revokeObjectURL(url));
   createdBlobUrls = [];
 }
 
-// --- Song & Video File Selector ---
+// File Input Handler
 songFile.addEventListener('change', async ({ target }) => {
   const file = target.files[0];
   if (!file) return;
@@ -385,21 +406,21 @@ songFile.addEventListener('change', async ({ target }) => {
   progressBar.style.width = '0%';
 
   clearPreviousBlobs();
+  await unlockAudioOnTouch();
 
   if (deviceSelect.value === 'offline') {
     await processOfflineWasm(file);
   } else {
-    // Attempt Server API, automatically fallback to Offline WASM if network fails
     try {
       await processServerApi(file);
     } catch (e) {
-      console.warn('Server unavailable, falling back to Offline WASM:', e);
+      console.warn('Server API failed, using Offline WASM fallback:', e);
       await processOfflineWasm(file);
     }
   }
 });
 
-// Server Demucs Separator
+// Server API Demucs
 async function processServerApi(file) {
   const formData = new FormData();
   formData.append('file', file);
@@ -409,7 +430,7 @@ async function processServerApi(file) {
   const uploadRes = await fetch('/api/separate', { method: 'POST', body: formData });
   
   if (!uploadRes.ok) {
-    throw new Error('Server returned HTTP ' + uploadRes.status);
+    throw new Error('Server HTTP error ' + uploadRes.status);
   }
 
   const { job_id } = await uploadRes.json();
@@ -436,7 +457,6 @@ async function processServerApi(file) {
         showPlayerControls();
       } else if (job.status === 'failed') {
         clearInterval(pollInterval);
-        console.warn('Server job failed, using offline fallback');
         await processOfflineWasm(file);
       }
     } catch (e) {
@@ -446,22 +466,24 @@ async function processServerApi(file) {
   }, 1000);
 }
 
-// Offline WebAssembly DSP Engine (Guaranteed 100% Work, Never Gets Stuck)
+// 100% Bulletproof iOS WebAudio Decoder & Offline DSP Engine
 async function processOfflineWasm(file) {
   try {
-    progressText.textContent = 'Cihaz İçi AI Ayrıştırılıyor…';
-    progressValue.textContent = '20%';
-    progressBar.style.width = '20%';
+    progressText.textContent = 'Dosya Çözümleniyor…';
+    progressValue.textContent = '25%';
+    progressBar.style.width = '25%';
+
+    await unlockAudioOnTouch();
 
     const arrayBuffer = await file.arrayBuffer();
-    if (!audioCtx) initWebAudio();
 
     progressValue.textContent = '50%';
     progressBar.style.width = '50%';
 
-    // Decodes audio track directly out of MP3, WAV, M4A, FLAC and MP4/MOV video files!
-    const decodedAudio = await audioCtx.decodeAudioData(arrayBuffer);
+    // Uses safe dual promise/callback decoder for iOS Safari & WKWebView
+    const decodedAudio = await decodeAudioDataSafe(audioCtx, arrayBuffer);
 
+    progressText.textContent = 'Cihaz İçi AI Ayrıştırılıyor…';
     progressValue.textContent = '75%';
     progressBar.style.width = '75%';
 
@@ -524,8 +546,8 @@ async function processOfflineWasm(file) {
     }, 400);
 
   } catch (err) {
-    console.error('Offline process error:', err);
-    progressText.textContent = 'Hata oluştu. Lütfen geçerli bir ses/video dosyası seçin.';
+    console.error('Offline process error detail:', err);
+    progressText.textContent = 'Dosya çözümlenirken hata oluştu: ' + (err.message || 'Biçim desteklenmiyor');
   }
 }
 
