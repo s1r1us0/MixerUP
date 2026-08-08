@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#080b0f" />
+    <title>MixerUp iOS — Mobil Stüdyo</title>
+    
+    <link rel="icon" type="image/png" href="logo.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.json" />
+    
+    <link rel="stylesheet" href="ios_style.css?v=2000" />
+  </head>
+  <body>
+    <div class="ios-shell">
+      
+      <!-- Top Header Bar -->
+      <header class="ios-header">
+        <div class="brand-wrap">
+          <img src="logo.png" alt="MixerUp" class="brand-logo" />
+          <span class="brand-title">MixerUp</span>
+          <span class="badge-ios">iOS Studio</span>
+        </div>
+        
+        <select id="deviceSelect" class="hardware-chip" title="Ayrıştırma Modu">
+          <option value="auto">⚡ Otomatik (Masaüstü GPU)</option>
+          <option value="cuda">🚀 GPU Ekran Kartı</option>
+          <option value="cpu">💻 CPU İşlemci</option>
+          <option value="offline">📱 Cihaz İçi Offline Mod (WebAssembly)</option>
+        </select>
+      </header>
+
+      <!-- Upload Card -->
+      <section id="uploadCard" class="glass-card">
+        <div class="upload-box">
+          <div class="upload-icon">🎵</div>
+          <h2 class="upload-title">Ses veya Video Yükleyin</h2>
+          <p class="upload-subtitle">Desteklenen Biçimler: MP3, WAV, M4A, FLAC, MP4, MOV</p>
+          
+          <label for="songFile" class="btn-select">
+            📁 Dosyalardan Seçin
+          </label>
+          <input id="songFile" type="file" style="position:absolute;opacity:0;width:1px;height:1px;left:-9999px;" />
+          
+          <div id="progressWrap" class="progress-wrap" hidden>
+            <div class="progress-info">
+              <span id="progressText">Hazırlanıyor…</span>
+              <span id="progressValue">0%</span>
+            </div>
+            <div class="progress-track">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Player Controls & Waveform Canvas -->
+      <section id="playerCard" class="glass-card" hidden>
+        <div class="waveform-section">
+          <div class="waveform-header">
+            <span id="songTitleText" class="song-title-text">Şarkı Yüklenmedi</span>
+            <span id="timeDisplay" class="time-display">00:00 / 00:00</span>
+          </div>
+          
+          <div class="canvas-container">
+            <canvas id="waveformCanvas"></canvas>
+          </div>
+          
+          <!-- Quick Preset Chips -->
+          <div class="presets-scroll">
+            <button class="preset-chip active" data-preset="reset">⚡ Sıfırla</button>
+            <button class="preset-chip" data-preset="karaoke">🎤 Karaoke (Vokali Kapat)</button>
+            <button class="preset-chip" data-preset="acapella">🗣️ Acapella (Solo Vokal)</button>
+            <button class="preset-chip" data-preset="drumless">🥁 Drumless (Davulsuz)</button>
+            <button class="preset-chip" data-preset="bassless">🎸 Bassless (Bassız)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mixer Channels Grid -->
+      <section id="mixerCard" class="glass-card" hidden>
+        <div class="channels-grid">
+          
+          <!-- Vocal Channel -->
+          <div class="channel-strip" data-channel="vocal">
+            <div class="channel-head">
+              <div class="channel-identity">
+                <div class="channel-badge">🎤</div>
+                <span class="channel-name">Vokal</span>
+              </div>
+              <span id="vocalVolLabel" class="channel-db">100%</span>
+            </div>
+            <div class="channel-controls">
+              <button id="btnMuteVocal" class="btn-pad">Mute</button>
+              <button id="btnSoloVocal" class="btn-pad">Solo</button>
+              <div class="fader-wrap">
+                <input id="faderVocal" type="range" class="fader-slider" min="0" max="1.5" step="0.01" value="1" />
+                <div class="peak-meter"><div id="peakVocal" class="peak-level"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Drums Channel -->
+          <div class="channel-strip" data-channel="drums">
+            <div class="channel-head">
+              <div class="channel-identity">
+                <div class="channel-badge">🥁</div>
+                <span class="channel-name">Davul</span>
+              </div>
+              <span id="drumsVolLabel" class="channel-db">100%</span>
+            </div>
+            <div class="channel-controls">
+              <button id="btnMuteDrums" class="btn-pad">Mute</button>
+              <button id="btnSoloDrums" class="btn-pad">Solo</button>
+              <div class="fader-wrap">
+                <input id="faderDrums" type="range" class="fader-slider" min="0" max="1.5" step="0.01" value="1" />
+                <div class="peak-meter"><div id="peakDrums" class="peak-level"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bass Channel -->
+          <div class="channel-strip" data-channel="bass">
+            <div class="channel-head">
+              <div class="channel-identity">
+                <div class="channel-badge">🎸</div>
+                <span class="channel-name">Bas</span>
+              </div>
+              <span id="bassVolLabel" class="channel-db">100%</span>
+            </div>
+            <div class="channel-controls">
+              <button id="btnMuteBass" class="btn-pad">Mute</button>
+              <button id="btnSoloBass" class="btn-pad">Solo</button>
+              <div class="fader-wrap">
+                <input id="faderBass" type="range" class="fader-slider" min="0" max="1.5" step="0.01" value="1" />
+                <div class="peak-meter"><div id="peakBass" class="peak-level"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Other Channel -->
+          <div class="channel-strip" data-channel="other">
+            <div class="channel-head">
+              <div class="channel-identity">
+                <div class="channel-badge">🎹</div>
+                <span class="channel-name">Diğer / Enstrüman</span>
+              </div>
+              <span id="otherVolLabel" class="channel-db">100%</span>
+            </div>
+            <div class="channel-controls">
+              <button id="btnMuteOther" class="btn-pad">Mute</button>
+              <button id="btnSoloOther" class="btn-pad">Solo</button>
+              <div class="fader-wrap">
+                <input id="faderOther" type="range" class="fader-slider" min="0" max="1.5" step="0.01" value="1" />
+                <div class="peak-meter"><div id="peakOther" class="peak-level"></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Effects & Transpose Controls -->
+      <section id="effectsCard" class="glass-card" hidden>
+        <div class="effects-grid">
+          <div class="effect-card">
+            <div class="effect-label">
+              <span>🎵 Transpoze (Pitch)</span>
+              <span id="pitchLabel">0 st</span>
+            </div>
+            <input id="pitchSlider" type="range" class="fader-slider" min="-12" max="12" step="1" value="0" />
+          </div>
+
+          <div class="effect-card">
+            <div class="effect-label">
+              <span>⚡ Oynatma Hızı</span>
+              <span id="tempoLabel">1.0x</span>
+            </div>
+            <input id="tempoSlider" type="range" class="fader-slider" min="0.5" max="2.0" step="0.05" value="1" />
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Floating Bottom Media Dock -->
+    <div id="floatingDock" class="floating-dock" hidden>
+      <button id="btnMasterPlay" class="btn-play-master">▶</button>
+      <div class="dock-actions">
+        <button id="btnExportMix" class="btn-dock-action">📥 Miksi İndir</button>
+        <button id="btnExportZip" class="btn-dock-action">📦 Kanalları İndir (ZIP)</button>
+      </div>
+    </div>
+
+    <!-- Hidden HTML5 Audio Elements -->
+    <audio id="vocalAudio"></audio>
+    <audio id="drumsAudio"></audio>
+    <audio id="bassAudio"></audio>
+    <audio id="otherAudio"></audio>
+
+    <script src="ios_app.js?v=2000"></script>
+  </body>
+</html>

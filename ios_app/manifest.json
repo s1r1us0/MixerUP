@@ -1,0 +1,22 @@
+{
+  "name": "MixerUp iOS — Mobil Stüdyo",
+  "short_name": "MixerUp iOS",
+  "description": "iOS'a özel yapay zeka vokal, davul, bas ve enstrüman ayrıştırma platformu.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080b0f",
+  "theme_color": "#080b0f",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
