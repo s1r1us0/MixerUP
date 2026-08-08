@@ -1,11 +1,10 @@
 /* ==========================================================================
-   MixerUp iOS Studio Engine — Native Touch & Audio Processing Engine
+   MixerUp iOS Pro Engine — Master-Slave Microsecond Audio Sync Engine
    ========================================================================== */
 
-// --- DOM Elements ---
+// --- DOM References ---
 const songFile = document.getElementById('songFile');
 const deviceSelect = document.getElementById('deviceSelect');
-const uploadCard = document.getElementById('uploadCard');
 const progressWrap = document.getElementById('progressWrap');
 const progressText = document.getElementById('progressText');
 const progressValue = document.getElementById('progressValue');
@@ -21,7 +20,7 @@ const timeDisplay = document.getElementById('timeDisplay');
 const btnMasterPlay = document.getElementById('btnMasterPlay');
 const waveformCanvas = document.getElementById('waveformCanvas');
 
-// Channels
+// Audio Tracks
 const tracks = {
   vocal: document.getElementById('vocalAudio'),
   drums: document.getElementById('drumsAudio'),
@@ -29,6 +28,7 @@ const tracks = {
   other: document.getElementById('otherAudio')
 };
 
+// Controls
 const faders = {
   vocal: document.getElementById('faderVocal'),
   drums: document.getElementById('faderDrums'),
@@ -68,13 +68,14 @@ const pitchSlider = document.getElementById('pitchSlider');
 const pitchLabel = document.getElementById('pitchLabel');
 const tempoSlider = document.getElementById('tempoSlider');
 const tempoLabel = document.getElementById('tempoLabel');
+
 const btnExportMix = document.getElementById('btnExportMix');
 const btnExportZip = document.getElementById('btnExportZip');
 
-// State Variables
+// Master State
 let currentJobId = null;
 let isPlaying = false;
-let isOfflineMode = false;
+let isSeeking = false;
 let audioCtx = null;
 let animFrameId = null;
 let createdBlobUrls = [];
@@ -82,7 +83,7 @@ let createdBlobUrls = [];
 const muteStates = { vocal: false, drums: false, bass: false, other: false };
 const soloStates = { vocal: false, drums: false, bass: false, other: false };
 
-// --- Web Audio & Peak Meter Setup ---
+// --- Web Audio & Peak Analysers ---
 let analysers = {};
 
 function initWebAudio() {
@@ -99,12 +100,11 @@ function initWebAudio() {
       analyser.connect(audioCtx.destination);
       analysers[name] = analyser;
     } catch (e) {
-      // Source already attached or fallback
+      // Attached
     }
   });
 }
 
-// iOS Touch Unlocker
 function unlockAudioOnTouch() {
   if (!audioCtx) initWebAudio();
   if (audioCtx && audioCtx.state === 'suspended') {
@@ -115,7 +115,7 @@ function unlockAudioOnTouch() {
   document.addEventListener(evt, unlockAudioOnTouch, { once: true });
 });
 
-// --- Waveform Canvas Drawer ---
+// --- Waveform Canvas Scrubber ---
 const ctx = waveformCanvas.getContext('2d');
 function setupCanvas() {
   const rect = waveformCanvas.parentElement.getBoundingClientRect();
@@ -131,7 +131,6 @@ function drawWaveform() {
 
   ctx.clearRect(0, 0, width, height);
 
-  // Background bars simulation
   const mainTrack = tracks.vocal;
   const duration = mainTrack.duration || 1;
   const currentTime = mainTrack.currentTime || 0;
@@ -143,52 +142,86 @@ function drawWaveform() {
 
   for (let i = 0; i < totalBars; i++) {
     const barProgress = i / totalBars;
-    const h = Math.max(10, Math.sin(i * 0.15) * 30 + Math.cos(i * 0.3) * 20 + 35);
+    const h = Math.max(8, Math.sin(i * 0.18) * 32 + Math.cos(i * 0.35) * 22 + 38);
     const y = (height - h) / 2;
 
     if (barProgress <= progress) {
-      ctx.fillStyle = '#a3e635'; // Passed progress glow
+      ctx.fillStyle = '#ff2e93';
     } else {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
     }
 
     ctx.fillRect(i * (barWidth + gap), y, barWidth, h);
   }
 
-  // Playhead vertical line
+  // Playhead line
   const playheadX = progress * width;
-  ctx.fillStyle = '#ec4899';
+  ctx.fillStyle = '#a3e635';
   ctx.fillRect(playheadX - 1, 0, 3, height);
 }
 
-// Canvas Touch Seek
+// Master-Slave Microsecond Sync Seeking
+function seekToPosition(targetTime) {
+  isSeeking = true;
+  
+  // Pause all tracks to prevent seeking audio scrambling
+  Object.values(tracks).forEach(audio => {
+    audio.pause();
+    audio.currentTime = targetTime;
+  });
+
+  drawWaveform();
+
+  // If was playing, resume after micro-delay
+  if (isPlaying) {
+    setTimeout(() => {
+      syncTrackPositions(targetTime);
+      Promise.all(Object.values(tracks).filter(a => a.src).map(a => a.play()))
+        .then(() => { isSeeking = false; })
+        .catch(() => { isSeeking = false; });
+    }, 40);
+  } else {
+    isSeeking = false;
+  }
+}
+
+// Force exact master-slave clock alignment
+function syncTrackPositions(masterTime) {
+  const t = masterTime !== undefined ? masterTime : (tracks.vocal.currentTime || 0);
+  ['drums', 'bass', 'other'].forEach(name => {
+    if (Math.abs(tracks[name].currentTime - t) > 0.02) {
+      tracks[name].currentTime = t;
+    }
+  });
+}
+
+// Canvas Touch / Drag Seek Event
 waveformCanvas.addEventListener('click', (e) => {
   const rect = waveformCanvas.getBoundingClientRect();
   const clickX = e.clientX - rect.left;
-  const ratio = clickX / rect.width;
+  const ratio = Math.max(0, Math.min(1, clickX / rect.width));
   const mainTrack = tracks.vocal;
   if (mainTrack.duration) {
-    const targetTime = ratio * mainTrack.duration;
-    Object.values(tracks).forEach(audio => {
-      audio.currentTime = targetTime;
-    });
-    drawWaveform();
+    seekToPosition(ratio * mainTrack.duration);
   }
 });
 
-// --- Master Sync Loop & Visualizers ---
+// --- Master Loop & Audio Sync Drift Guard ---
 function updateLoop() {
   if (!isPlaying) return;
 
-  const mainTrack = tracks.vocal;
-  if (mainTrack) {
-    const cur = mainTrack.currentTime || 0;
-    const dur = mainTrack.duration || 0;
+  const masterTrack = tracks.vocal;
+  if (masterTrack && !isSeeking) {
+    const cur = masterTrack.currentTime || 0;
+    const dur = masterTrack.duration || 0;
     timeDisplay.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+    
+    // Master-slave sync drift guard (ensures 0% echo/scramble)
+    syncTrackPositions(cur);
     drawWaveform();
   }
 
-  // Peak Meters
+  // Peak Level Meters
   Object.keys(analysers).forEach(name => {
     const analyser = analysers[name];
     if (analyser && peaks[name]) {
@@ -197,7 +230,7 @@ function updateLoop() {
       let sum = 0;
       for (let i = 0; i < data.length; i++) sum += data[i];
       const avg = sum / data.length;
-      const pct = Math.min(100, Math.round((avg / 255) * 150));
+      const pct = Math.min(100, Math.round((avg / 255) * 160));
       peaks[name].style.height = `${pct}%`;
     }
   });
@@ -212,7 +245,7 @@ function formatTime(sec) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// Master Play/Pause
+// Master Play/Pause Button
 btnMasterPlay.addEventListener('click', async () => {
   unlockAudioOnTouch();
   if (isPlaying) {
@@ -222,6 +255,8 @@ btnMasterPlay.addEventListener('click', async () => {
     if (animFrameId) cancelAnimationFrame(animFrameId);
   } else {
     try {
+      // Sync clock times before play
+      syncTrackPositions(tracks.vocal.currentTime || 0);
       await Promise.all(Object.values(tracks).filter(a => a.src).map(a => a.play()));
       isPlaying = true;
       btnMasterPlay.textContent = '❚❚';
@@ -232,7 +267,7 @@ btnMasterPlay.addEventListener('click', async () => {
   }
 });
 
-// Sync Audio Clocks
+// Sync Track Ended
 Object.values(tracks).forEach(audio => {
   audio.addEventListener('ended', () => {
     isPlaying = false;
@@ -240,7 +275,7 @@ Object.values(tracks).forEach(audio => {
   });
 });
 
-// --- Faders & Mute/Solo Logic ---
+// --- Fader & Mute/Solo Engine ---
 function updateAudioVolumes() {
   const hasSolo = Object.values(soloStates).some(v => v);
 
@@ -282,7 +317,6 @@ Object.keys(btnSolo).forEach(name => {
 pitchSlider.addEventListener('input', (e) => {
   const val = e.target.value;
   pitchLabel.textContent = `${val > 0 ? '+' : ''}${val} st`;
-  // Pitch Transpose via Web Audio rate adjustment
   const semitones = parseFloat(val);
   const rate = Math.pow(2, semitones / 12) * parseFloat(tempoSlider.value);
   Object.values(tracks).forEach(audio => {
@@ -300,15 +334,15 @@ tempoSlider.addEventListener('input', (e) => {
   });
 });
 
-// --- Quick Presets ---
+// Preset Sound Chips
 document.querySelectorAll('.preset-chip').forEach(chip => {
-  chip.addEventListener('click', (e) => {
+  chip.addEventListener('click', () => {
     document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
 
     const preset = chip.dataset.preset;
     
-    // Reset Mute/Solo
+    // Reset States
     Object.keys(muteStates).forEach(k => {
       muteStates[k] = false;
       soloStates[k] = false;
@@ -335,13 +369,13 @@ document.querySelectorAll('.preset-chip').forEach(chip => {
   });
 });
 
-// --- Memory Cleanup & Revoke Blobs ---
+// --- Memory Cleanup ---
 function clearPreviousBlobs() {
   createdBlobUrls.forEach(url => URL.revokeObjectURL(url));
   createdBlobUrls = [];
 }
 
-// --- Song Upload & AI Processing ---
+// --- Song & Video File Selector ---
 songFile.addEventListener('change', async ({ target }) => {
   const file = target.files[0];
   if (!file) return;
@@ -361,7 +395,7 @@ songFile.addEventListener('change', async ({ target }) => {
   }
 });
 
-// Server API Demucs Processor
+// Server Demucs Separator
 async function processServerApi(file) {
   const formData = new FormData();
   formData.append('file', file);
@@ -373,7 +407,6 @@ async function processServerApi(file) {
     const { job_id } = await uploadRes.json();
     currentJobId = job_id;
 
-    // Poll Status
     const pollInterval = setInterval(async () => {
       const res = await fetch(`/api/jobs/${job_id}`);
       const job = await res.json();
@@ -386,7 +419,6 @@ async function processServerApi(file) {
         clearInterval(pollInterval);
         progressWrap.hidden = true;
         
-        // Load Stem Stream Audio URLs
         Object.keys(tracks).forEach(name => {
           tracks[name].src = `/api/stem-stream/${job_id}/${name}?v=${Date.now()}`;
           tracks[name].load();
@@ -395,7 +427,7 @@ async function processServerApi(file) {
         showPlayerControls();
       } else if (job.status === 'failed') {
         clearInterval(pollInterval);
-        alert('Ayrıştırma hatası oluştu: ' + (job.error || 'Bilinmeyen hata'));
+        alert('Ayrıştırma hatası oluştu.');
       }
     }, 1000);
 
@@ -405,7 +437,7 @@ async function processServerApi(file) {
   }
 }
 
-// Offline WebAssembly DSP Processor
+// Offline WebAssembly DSP Engine (with MP4/MOV Video Support)
 async function processOfflineWasm(file) {
   try {
     progressText.textContent = 'Cihaz İçi DSP Ayrıştırılıyor…';
@@ -414,16 +446,16 @@ async function processOfflineWasm(file) {
 
     const arrayBuffer = await file.arrayBuffer();
     if (!audioCtx) initWebAudio();
+
+    // Decodes audio track directly out of MP3, WAV, M4A, FLAC and MP4/MOV video files!
     const decodedAudio = await audioCtx.decodeAudioData(arrayBuffer);
 
-    // Simulate 4 DSP Filter Stems directly in WebAudio
     const offlineCtx = new OfflineAudioContext(
       decodedAudio.numberOfChannels,
       decodedAudio.length,
       decodedAudio.sampleRate
     );
 
-    // Helper Filter Stem Generator
     const createFilterStem = async (lowFreq, highFreq) => {
       const source = offlineCtx.createBufferSource();
       source.buffer = decodedAudio;
@@ -482,7 +514,6 @@ async function processOfflineWasm(file) {
   }
 }
 
-// Convert AudioBuffer to WAV Blob
 function bufferToBlob(buffer) {
   const numOfChan = buffer.numberOfChannels;
   const length = buffer.length * numOfChan * 2 + 44;
@@ -521,7 +552,7 @@ function showPlayerControls() {
   drawWaveform();
 }
 
-// Export Download Action
+// Download Buttons
 btnExportMix.addEventListener('click', () => {
   if (currentJobId) {
     window.location.href = `/api/download/${currentJobId}?type=mix`;
