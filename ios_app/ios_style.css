@@ -1,32 +1,32 @@
 /* ==========================================================================
-   MixerUp iOS 18 Pro Studio — Modern OLED Dark Glassmorphism Stylesheet
+   MixerUp iOS 18 CyberStudio — Completely Redesigned Mobile DAW Interface
    ========================================================================== */
 
 :root {
-  --bg-dark: #05070a;
-  --bg-card: rgba(14, 20, 28, 0.7);
-  --bg-glass: rgba(255, 255, 255, 0.04);
+  --bg-dark: #040609;
+  --bg-card: rgba(12, 17, 24, 0.75);
+  --bg-glass: rgba(255, 255, 255, 0.03);
   --border-glass: rgba(255, 255, 255, 0.09);
   
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   
-  /* Stem Identity Colors */
-  --color-vocal: #ff2e93;
-  --color-vocal-glow: rgba(255, 46, 147, 0.4);
+  /* Stem Colors */
+  --stem-vocal: #ff2e93;
+  --stem-vocal-glow: rgba(255, 46, 147, 0.4);
   
-  --color-drums: #a3e635;
-  --color-drums-glow: rgba(163, 230, 53, 0.4);
+  --stem-drums: #a3e635;
+  --stem-drums-glow: rgba(163, 230, 53, 0.4);
   
-  --color-bass: #00f0ff;
-  --color-bass-glow: rgba(0, 240, 255, 0.4);
+  --stem-bass: #00f0ff;
+  --stem-bass-glow: rgba(0, 240, 255, 0.4);
   
-  --color-other: #ff8c00;
-  --color-other-glow: rgba(255, 140, 0, 0.4);
+  --stem-other: #ff8c00;
+  --stem-other-glow: rgba(255, 140, 0, 0.4);
   
-  --radius-xl: 26px;
-  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
   
@@ -56,74 +56,73 @@ html, body {
 }
 
 body {
-  padding-top: max(16px, env(safe-area-inset-top));
+  padding-top: max(12px, env(safe-area-inset-top));
   padding-bottom: max(110px, env(safe-area-inset-bottom));
-  padding-left: max(14px, env(safe-area-inset-left));
-  padding-right: max(14px, env(safe-area-inset-right));
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
   background: 
-    radial-gradient(circle at 50% 0%, rgba(255, 46, 147, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 100% 100%, rgba(163, 230, 53, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 0% 50%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
-    #05070a;
+    radial-gradient(ellipse at 50% 0%, rgba(255, 46, 147, 0.09) 0%, transparent 50%),
+    radial-gradient(circle at 100% 60%, rgba(163, 230, 53, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(0, 240, 255, 0.08) 0%, transparent 45%),
+    #040609;
 }
 
-.ios-shell {
+.ios-app-container {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
-/* Header Bar */
-.ios-header {
+/* Header Navbar */
+.app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 4px;
+  padding: 6px 2px;
 }
 
-.brand-wrap {
+.logo-box {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.brand-logo {
-  width: 40px;
-  height: 40px;
+.app-logo {
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
   object-fit: cover;
-  box-shadow: 0 4px 16px rgba(255, 46, 147, 0.3);
+  box-shadow: 0 4px 18px rgba(255, 46, 147, 0.35);
 }
 
-.brand-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+.app-title {
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: -0.6px;
   background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.badge-pro {
+.app-badge {
   font-size: 0.65rem;
   font-weight: 800;
   padding: 3px 8px;
   border-radius: 20px;
   background: rgba(255, 46, 147, 0.15);
-  color: var(--color-vocal);
+  color: var(--stem-vocal);
   border: 1px solid rgba(255, 46, 147, 0.35);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.hardware-chip {
+.server-selector {
   font-size: 0.75rem;
   font-weight: 700;
   background: var(--bg-card);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border: 1px solid var(--border-glass);
   padding: 8px 12px;
   border-radius: var(--radius-md);
@@ -131,66 +130,64 @@ body {
   backdrop-filter: blur(16px);
 }
 
-/* Glass Card */
-.glass-card {
+/* Glass Section Cards */
+.glass-box {
   background: var(--bg-card);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-xl);
-  padding: 18px;
+  padding: 16px;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* Upload Dropzone */
-.upload-box {
+/* Hero Upload Area */
+.hero-upload {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 24px 16px;
-  border: 2px dashed rgba(163, 230, 53, 0.35);
+  padding: 24px 14px;
+  border: 2px dashed rgba(163, 230, 53, 0.4);
   border-radius: var(--radius-lg);
   background: rgba(163, 230, 53, 0.02);
-  transition: all 0.25s ease;
 }
 
-.upload-icon {
-  width: 56px;
-  height: 56px;
+.upload-icon-circle {
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: rgba(163, 230, 53, 0.15);
-  color: var(--color-drums);
+  color: var(--stem-drums);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   margin-bottom: 12px;
 }
 
-.upload-title {
-  font-size: 1.15rem;
-  font-weight: 800;
+.upload-main-title {
+  font-size: 1.2rem;
+  font-weight: 900;
   margin-bottom: 6px;
 }
 
-.upload-subtitle {
+.upload-sub-text {
   font-size: 0.8rem;
   color: var(--text-secondary);
   margin-bottom: 16px;
-  line-height: 1.4;
 }
 
-.btn-select {
+.btn-open-files {
   width: 100%;
-  padding: 14px;
-  font-size: 0.95rem;
+  padding: 15px;
+  font-size: 0.98rem;
   font-weight: 800;
   border-radius: var(--radius-md);
   border: none;
   background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%);
   color: #000000;
-  box-shadow: 0 6px 22px rgba(163, 230, 53, 0.35);
+  box-shadow: 0 6px 24px rgba(163, 230, 53, 0.4);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -198,13 +195,13 @@ body {
   gap: 8px;
 }
 
-/* Progress Wrap */
-.progress-wrap {
-  margin-top: 16px;
+/* Progress Area */
+.progress-bar-wrap {
+  margin-top: 14px;
   width: 100%;
 }
 
-.progress-info {
+.progress-header {
   display: flex;
   justify-content: space-between;
   font-size: 0.82rem;
@@ -212,7 +209,7 @@ body {
   margin-bottom: 6px;
 }
 
-.progress-track {
+.progress-bar-track {
   width: 100%;
   height: 8px;
   background: rgba(255, 255, 255, 0.08);
@@ -220,62 +217,61 @@ body {
   overflow: hidden;
 }
 
-.progress-fill {
+.progress-bar-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--color-vocal) 0%, var(--color-drums) 50%, var(--color-bass) 100%);
+  background: linear-gradient(90deg, var(--stem-vocal) 0%, var(--stem-drums) 50%, var(--stem-bass) 100%);
   transition: width 0.2s ease;
-  border-radius: 4px;
 }
 
-/* Waveform Canvas Section */
-.waveform-section {
+/* Main Waveform Scrub Bar */
+.master-waveform-box {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-.waveform-header {
+.track-meta-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.song-title-text {
-  font-size: 1.1rem;
-  font-weight: 800;
+.song-name-display {
+  font-size: 1.15rem;
+  font-weight: 900;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 250px;
 }
 
-.time-display {
+.timecode-display {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.88rem;
+  font-weight: 800;
   color: var(--text-secondary);
 }
 
-.canvas-container {
+.waveform-canvas-box {
   position: relative;
   width: 100%;
-  height: 90px;
-  background: rgba(0, 0, 0, 0.5);
+  height: 85px;
+  background: rgba(0, 0, 0, 0.55);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-glass);
   overflow: hidden;
   cursor: pointer;
 }
 
-#waveformCanvas {
+#masterCanvas {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-/* Presets Chips Bar */
-.presets-scroll {
+/* Presets Bar */
+.preset-chips-row {
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -283,91 +279,89 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.presets-scroll::-webkit-scrollbar {
+.preset-chips-row::-webkit-scrollbar {
   display: none;
 }
 
-.preset-chip {
+.chip-btn {
   padding: 8px 14px;
   font-size: 0.78rem;
   font-weight: 700;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-glass);
   color: var(--text-primary);
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.preset-chip.active {
-  background: rgba(255, 46, 147, 0.2);
-  border-color: var(--color-vocal);
-  color: var(--color-vocal);
-  box-shadow: 0 0 12px var(--color-vocal-glow);
+.chip-btn.active {
+  background: rgba(255, 46, 147, 0.22);
+  border-color: var(--stem-vocal);
+  color: var(--stem-vocal);
+  box-shadow: 0 0 14px var(--stem-vocal-glow);
 }
 
-/* Channel Mixer Grid */
-.channels-grid {
+/* Stacked Multi-Track DAW Stem Lanes */
+.daw-lanes-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.channel-strip {
-  background: rgba(0, 0, 0, 0.3);
+.stem-lane-card {
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
-  padding: 14px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: border-color 0.2s ease;
 }
 
-.channel-head {
+.lane-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.channel-identity {
+.lane-identity {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.channel-badge {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+.lane-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.channel-name {
   font-size: 0.95rem;
   font-weight: 800;
 }
 
-.channel-db {
+.lane-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.lane-vol-pct {
   font-family: var(--font-mono);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-secondary);
 }
 
-.channel-controls {
+.lane-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.btn-pad {
-  padding: 7px 14px;
+.btn-toggle-pad {
+  padding: 7px 12px;
   font-size: 0.76rem;
   font-weight: 800;
   border-radius: var(--radius-sm);
@@ -375,31 +369,30 @@ body {
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.btn-pad.active-mute {
+.btn-toggle-pad.mute-active {
   background: rgba(239, 68, 68, 0.25);
   border-color: #ef4444;
   color: #ef4444;
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
 }
 
-.btn-pad.active-solo {
+.btn-toggle-pad.solo-active {
   background: rgba(234, 179, 8, 0.25);
   border-color: #eab308;
   color: #eab308;
   box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
 }
 
-.fader-wrap {
+.slider-wrapper {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.fader-slider {
+.stem-slider {
   flex: 1;
   -webkit-appearance: none;
   appearance: none;
@@ -409,18 +402,17 @@ body {
   outline: none;
 }
 
-.fader-slider::-webkit-slider-thumb {
+.stem-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 24px;
   height: 24px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
   cursor: pointer;
 }
 
-/* Peak Level Meters */
-.peak-meter {
+.peak-bar-box {
   width: 8px;
   height: 26px;
   background: rgba(255, 255, 255, 0.08);
@@ -430,43 +422,43 @@ body {
   flex-direction: column-reverse;
 }
 
-.peak-level {
+.peak-bar-level {
   width: 100%;
   height: 0%;
   transition: height 0.05s ease;
 }
 
-/* Colors Per Stem Channel */
-.channel-strip[data-channel="vocal"] .channel-badge { background: rgba(255, 46, 147, 0.2); color: var(--color-vocal); }
-.channel-strip[data-channel="vocal"] .peak-level { background: var(--color-vocal); }
+/* Stem Color Themes */
+.stem-lane-card[data-stem="vocal"] .lane-icon { background: rgba(255, 46, 147, 0.2); color: var(--stem-vocal); }
+.stem-lane-card[data-stem="vocal"] .peak-bar-level { background: var(--stem-vocal); }
 
-.channel-strip[data-channel="drums"] .channel-badge { background: rgba(163, 230, 53, 0.2); color: var(--color-drums); }
-.channel-strip[data-channel="drums"] .peak-level { background: var(--color-drums); }
+.stem-lane-card[data-stem="drums"] .lane-icon { background: rgba(163, 230, 53, 0.2); color: var(--stem-drums); }
+.stem-lane-card[data-stem="drums"] .peak-bar-level { background: var(--stem-drums); }
 
-.channel-strip[data-channel="bass"] .channel-badge { background: rgba(0, 240, 255, 0.2); color: var(--color-bass); }
-.channel-strip[data-channel="bass"] .peak-level { background: var(--color-bass); }
+.stem-lane-card[data-stem="bass"] .lane-icon { background: rgba(0, 240, 255, 0.2); color: var(--stem-bass); }
+.stem-lane-card[data-stem="bass"] .peak-bar-level { background: var(--stem-bass); }
 
-.channel-strip[data-channel="other"] .channel-badge { background: rgba(255, 140, 0, 0.2); color: var(--color-other); }
-.channel-strip[data-channel="other"] .peak-level { background: var(--color-other); }
+.stem-lane-card[data-stem="other"] .lane-icon { background: rgba(255, 140, 0, 0.2); color: var(--stem-other); }
+.stem-lane-card[data-stem="other"] .peak-bar-level { background: var(--stem-other); }
 
-/* DSP Effects Section */
-.effects-grid {
+/* Pitch & Tempo Controls */
+.dsp-controls-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
-.effect-card {
-  background: rgba(0, 0, 0, 0.3);
+.dsp-box {
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.effect-label {
+.dsp-title-row {
   font-size: 0.78rem;
   font-weight: 800;
   color: var(--text-secondary);
@@ -475,59 +467,54 @@ body {
 }
 
 /* Floating Bottom Media Dock */
-.floating-dock {
+.floating-media-dock {
   position: fixed;
-  bottom: max(16px, env(safe-area-inset-bottom));
+  bottom: max(14px, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 28px);
   max-width: 440px;
-  background: rgba(12, 18, 26, 0.88);
+  background: rgba(10, 15, 22, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 32px;
+  border-radius: 34px;
   padding: 10px 18px;
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
   z-index: 1000;
 }
 
-.btn-play-master {
-  width: 54px;
-  height: 54px;
+.btn-master-toggle {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%);
   color: #000000;
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px rgba(163, 230, 53, 0.45);
+  box-shadow: 0 6px 26px rgba(163, 230, 53, 0.45);
   cursor: pointer;
-  transition: transform 0.15s ease;
 }
 
-.btn-play-master:active {
-  transform: scale(0.95);
-}
-
-.dock-actions {
+.dock-buttons {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.btn-dock-action {
+.btn-download-action {
   padding: 10px 14px;
   font-size: 0.8rem;
   font-weight: 800;
   border-radius: 20px;
   border: 1px solid var(--border-glass);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.09);
   color: var(--text-primary);
   cursor: pointer;
 }
