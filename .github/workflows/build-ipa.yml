@@ -18,11 +18,11 @@ jobs:
           mkdir -p build/App.app
           mkdir -p build/App.app/www
           
-          # Copy Web App Files
-          cp index.html style.css app.js manifest.json sw.js logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/www/ 2>/dev/null || true
-          cp logo.png apple-touch-icon.png icon-192.png icon-512.png build/App.app/ 2>/dev/null || true
+          # Copy Dedicated iOS App Files from ios_app/ directory
+          cp ios_app/* build/App.app/www/ 2>/dev/null || true
+          cp ios_app/logo.png ios_app/apple-touch-icon.png ios_app/icon-192.png ios_app/icon-512.png build/App.app/ 2>/dev/null || true
 
-          # Create Info.plist with App Icon, UILaunchScreen & MP3 File Picker permissions
+          # Create Info.plist with App Icon, UILaunchScreen & MP3/Video File Picker permissions
           cat << 'EOF' > build/App.app/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -86,7 +86,7 @@ jobs:
                   window = UIWindow(frame: bounds)
                   
                   let vc = UIViewController()
-                  vc.view.backgroundColor = UIColor(red: 0.05, green: 0.07, blue: 0.09, alpha: 1.0)
+                  vc.view.backgroundColor = UIColor(red: 0.03, green: 0.04, blue: 0.06, alpha: 1.0)
                   
                   let config = WKWebViewConfiguration()
                   config.allowsInlineMediaPlayback = true
