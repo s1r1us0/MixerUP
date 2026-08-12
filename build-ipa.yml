@@ -2,7 +2,7 @@ name: Build MixerUp iOS IPA
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, ana, "*" ]
   workflow_dispatch:
 
 jobs:
@@ -10,46 +10,128 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
+      - name: Build Native Fullscreen iOS App Binary
         run: |
-          npm install
-          npx cap init MixerUp com.mixerup.app --web-dir .
-          npx cap add ios
-          npx cap sync ios
+          mkdir -p build/App.app
+          mkdir -p build/App.app/www
+          
+          # Copy Dedicated iOS App Files from ios_app/ directory
+          cp ios_app/* build/App.app/www/ 2>/dev/null || true
+          cp ios_app/logo.png ios_app/apple-touch-icon.png ios_app/icon-192.png ios_app/icon-512.png build/App.app/ 2>/dev/null || true
 
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+          # Create Info.plist with App Icon, UILaunchScreen & MP3/Video File Picker permissions
+          cat << 'EOF' > build/App.app/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>MixerUp</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.mixerup.app</string>
+              <key>CFBundleName</key>
+              <string>MixerUp</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>2.1.0</string>
+              <key>CFBundleVersion</key>
+              <string>2</string>
+              <key>CFBundleIconFiles</key>
+              <array>
+                  <string>apple-touch-icon.png</string>
+                  <string>logo.png</string>
+                  <string>icon-192.png</string>
+                  <string>icon-512.png</string>
+              </array>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>UILaunchScreen</key>
+              <dict/>
+              <key>NSAppTransportSecurity</key>
+              <dict>
+                  <key>NSAllowsArbitraryLoads</key>
+                  <true/>
+              </dict>
+              <key>NSAppleMusicUsageDescription</key>
+              <string>MixerUp ses dosyalarını seçmeniz için izin gerektirir.</string>
+              <key>NSPhotoLibraryUsageDescription</key>
+              <string>MixerUp dosya seçmeniz için izin gerektirir.</string>
+              <key>UIRequiresFullScreen</key>
+              <true/>
+              <key>UIStatusBarHidden</key>
+              <false/>
+              <key>UIViewControllerBasedStatusBarAppearance</key>
+              <false/>
+              <key>UISupportedInterfaceOrientations</key>
+              <array>
+                  <string>UIInterfaceOrientationPortrait</string>
+              </array>
+          </dict>
+          </plist>
+          EOF
 
-      - name: Build iOS App with xcodebuild
-        run: |
-          cd ios/App
-          xcodebuild -workspace App.xcworkspace \
-                     -scheme App \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO
+          # Create Swift Edge-to-Edge Fullscreen Code
+          cat << 'EOF' > main.swift
+          import UIKit
+          import WebKit
 
-      - name: Package Payload into MixerUp.ipa
-        run: |
+          class AppDelegate: UIResponder, UIApplicationDelegate {
+              var window: UIWindow?
+              func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+                  let bounds = UIScreen.main.bounds
+                  window = UIWindow(frame: bounds)
+                  
+                  let vc = UIViewController()
+                  vc.view.backgroundColor = UIColor(red: 0.03, green: 0.04, blue: 0.06, alpha: 1.0)
+                  
+                  let config = WKWebViewConfiguration()
+                  config.allowsInlineMediaPlayback = true
+                  config.mediaTypesRequiringUserActionForPlayback = []
+                  config.websiteDataStore = WKWebsiteDataStore.nonPersistent()
+                  
+                  let webView = WKWebView(frame: bounds, configuration: config)
+                  webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                  webView.scrollView.contentInsetAdjustmentBehavior = .never
+                  webView.scrollView.bounces = false
+                  webView.isOpaque = false
+                  webView.backgroundColor = .clear
+                  
+                  if let wwwUrl = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "www") {
+                      webView.loadFileURL(wwwUrl, allowingReadAccessTo: wwwUrl.deletingLastPathComponent())
+                  }
+                  
+                  vc.view.addSubview(webView)
+                  window?.rootViewController = vc
+                  window?.makeKeyAndVisible()
+                  return true
+              }
+          }
+
+          UIApplicationMain(
+              CommandLine.argc,
+              CommandLine.unsafeArgv,
+              nil,
+              NSStringFromClass(AppDelegate.self)
+          )
+          EOF
+
+          # Compile Swift Code to Native Fullscreen iOS Binary
+          xcrun -sdk iphoneos swiftc main.swift \
+            -target arm64-apple-ios13.0 \
+            -emit-executable \
+            -o build/App.app/MixerUp
+
+          # Package into Payload/MixerUp.ipa
           mkdir -p Payload
-          cp -r ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
+          cp -r build/App.app Payload/
           zip -r MixerUp.ipa Payload
 
       - name: Upload MixerUp.ipa Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: MixerUp-iOS-IPA
           path: MixerUp.ipa
