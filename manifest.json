@@ -1,12 +1,12 @@
 {
-  "name": "MixerUp — AI Miks & Stem Ayrıştırıcı",
+  "name": "MixerUp — AI Music Stem Separator",
   "short_name": "MixerUp",
-  "description": "Yapay zeka ile vokal, davul, bas ve enstrüman kanallarını bağımsız olarak ayırın ve miksleyin.",
-  "start_url": "/",
+  "description": "Separate any track into vocals, drums, bass and instruments with AI.",
+  "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0d1117",
-  "theme_color": "#0d1117",
+  "background_color": "#08090C",
+  "theme_color": "#08090C",
   "icons": [
     {
       "src": "icon-192.png",

@@ -1,327 +1,625 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="MixerUp" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="format-detection" content="telephone=no" />
-    <meta name="theme-color" content="#0d1117" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="icon" type="image/png" href="icon-192.png" />
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/ort.min.js"></script>
-    <title>MixerUp — Ses ve Enstrüman Ayrıştırma Platformu</title>
-    <link rel="stylesheet" href="style.css?v=1600" />
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('sw.js');
-        });
-      }
-      var t = localStorage.getItem('mixerup-theme');
-      if (t) document.documentElement.dataset.theme = t;
-      function openGuide() {
-        var m = document.getElementById('guideModal');
-        if (m) {
-          m.removeAttribute('hidden');
-          m.style.cssText = 'display:flex!important;opacity:1!important;pointer-events:auto!important;';
-        }
-      }
-      function closeGuide() {
-        var m = document.getElementById('guideModal');
-        if (m) {
-          m.style.cssText = 'display:none!important;opacity:0!important;pointer-events:none!important;';
-          setTimeout(function(){ m.setAttribute('hidden',''); }, 10);
-        }
-      }
-    </script>
-  </head>
-  <body>
-    <main class="app-shell">
-      <header>
-        <div class="brand-logo-wrap">
-          <img src="logo.png" alt="MixerUp Logo" class="brand-logo-img" />
-        </div>
-        <span class="beta">BETA</span>
-        <button id="guideBtn" class="guide-btn" onclick="openGuide()" title="Kullanım Kılavuzu">&#10067; Nasıl Kullanılır?</button>
-        <button id="themeToggle" class="theme-toggle" aria-label="Tema değiştir" title="Açık / Koyu Mod">
-          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#08080f" />
+  <title>MixerUp</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="ios_style.css?v=8000" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
 
-      <section class="hero">
-        <p class="eyebrow">PROFESYONEL SES İŞLEME</p>
-        <h1>Müzik parçalarını bileşenlerine ayırın.</h1>
-        <p class="subtitle">Yapay zeka teknolojisi ile vokal, davul, bas ve diğer enstrüman kanallarını bağımsız olarak kontrol edin ve miksleyin.</p>
-      </section>
+<div class="ambient-canvas" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
 
-      <section class="how-it-works">
-        <div><span>01</span><h3>Dosya Yükleme</h3><p>Ayrıştırmak istediğiniz ses dosyasını güvenli biçimde sisteme aktarın.</p></div>
-        <div><span>02</span><h3>Kanal Ayrıştırma</h3><p>Gelişmiş AI modeli ile vokal, davul, bas ve diğer enstrümanlar ayrıştırılır.</p></div>
-        <div><span>03</span><h3>Canlı Miksaj</h3><p>Ses seviyelerini anlık olarak ayarlayarak özel miksinizi oluşturun.</p></div>
-      </section>
+<div id="app">
 
-      <!-- In-Page Guide Card -->
-      <section id="inPageGuide" class="inpage-guide-card" hidden>
-        <div class="guide-header">
-          <h3>💡 Kullanım Kılavuzu & İpuçları</h3>
-          <button type="button" onclick="closeGuide()" class="close-guide-chip">✕ Kapat</button>
-        </div>
-        <div class="guide-steps">
-          <div class="guide-step">
-            <div class="step-num">1</div>
-            <div class="step-info">
-              <h4>📁 Dosya Yükleme & AI Ayrıştırma</h4>
-              <p>Sisteme MP3, WAV veya M4A dosyanızı yükleyin. Yapay zeka şarkıyı 4 bağımsız kanala (Vokal, Davul, Bas, Diğer) ayırır.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">2</div>
-            <div class="step-info">
-              <h4>🎛️ Kanal Miksajı & Efektler</h4>
-              <p>Her kanalı <strong>M (Mute)</strong> ile susturun veya <strong>S (Solo)</strong> ile tek dinleyin. Reverb, Echo ve 8D Spatial Audio efektlerini deneyin.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">3</div>
-            <div class="step-info">
-              <h4>🎼 Ton (Pitch Transpose) & Hız Ayarları</h4>
-              <p>Şarkının temposunu bozmadan tonunu <strong>-6♭ ile +6♯ semiton</strong> arası transpoze edin. Slider ile oynatma hızını ayarlayın.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">4</div>
-            <div class="step-info">
-              <h4>🔁 A-B Kesit Döngüsü (Pratik Modu)</h4>
-              <p>Şarkı çalarken <strong>A Koy</strong> ve <strong>B Koy</strong> butonlarına basarak İstediğiniz nakarat veya enstrüman bölümünü sürekli döngüye alın.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">5</div>
-            <div class="step-info">
-              <h4>⌨️ Klavye Kısayolları</h4>
-              <div class="kbd-list">
-                <span><kbd>Space</kbd> Oynat / Durdur</span>
-                <span><kbd>←</kbd> 5s Geri</span>
-                <span><kbd>→</kbd> 5s İleri</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+  <!-- ===================== HOME ===================== -->
+  <section id="homeScreen" class="screen active">
+    <header class="home-header">
+      <div class="home-brand">
+        <svg class="brand-logo-svg" viewBox="0 0 95 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g>
+            <rect x="0" y="21" width="7" height="8" rx="3.5" fill="#00f3e7" />
+            <rect x="11" y="16" width="7" height="18" rx="3.5" fill="#00c3ff" />
+            <rect x="22" y="10" width="7" height="30" rx="3.5" fill="#3b82f6" />
+            <rect x="33" y="4" width="7" height="42" rx="3.5" fill="#6366f1" />
+            <rect x="44" y="0" width="7" height="50" rx="3.5" fill="#8b5cf6" />
+            <rect x="55" y="4" width="7" height="42" rx="3.5" fill="#d946ef" />
+            <rect x="66" y="10" width="7" height="30" rx="3.5" fill="#ec4899" />
+            <rect x="77" y="16" width="7" height="18" rx="3.5" fill="#f43f5e" />
+            <rect x="88" y="21" width="7" height="8" rx="3.5" fill="#fb7185" />
+          </g>
+        </svg>
+        <span class="brand-name">MixerUP</span>
+      </div>
+    </header>
 
-      <section id="uploadCard" class="upload-card">
-        <div class="upload-icon">↑</div>
-        <h2>Ses Dosyası Yükleyin</h2>
-        <p>Desteklenen Biçimler: MP3, WAV, M4A, FLAC • Maksimum 100 MB</p>
-        <label class="primary-button" for="songFile">📁 Dosya Seçin</label>
-        <input id="songFile" type="file" style="position:absolute;opacity:0;width:1px;height:1px;left:-9999px;" />
-        <div class="device-options">
-          <label for="deviceSelect" class="device-label">Donanım Tercihi:</label>
-          <select id="deviceSelect" class="device-select">
-            <option value="auto">Otomatik (Masaüstü Sunucu GPU/CPU)</option>
-            <option value="cuda">GPU (Masaüstü Ekran Kartı - En Hızlı)</option>
-            <option value="cpu">CPU (Masaüstü İşlemci)</option>
-            <option value="offline">📱 Cihaz İçi Offline Mod (Bilgisayarsız / Çevrimdışı WebAssembly AI)</option>
-          </select>
-        </div>
-        <p class="hint">Yüklenen ses dosyası 4 bağımsız kanala ayrıştırılacaktır. İşlem süresi donanım tercihinize ve dosya boyutuna bağlı olarak değişiklik gösterebilir.</p>
-        <div id="progressWrap" class="progress-wrap upload-progress" hidden aria-live="polite">
-          <div class="progress-label"><span id="progressText">Hazırlanıyor…</span><strong id="progressValue">0%</strong></div>
-          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
-        </div>
-      </section>
+    <div class="hero-text">
+      <h1>İstediğiniz şarkıyı<br/><em>ayırın</em></h1>
+      <p>Bir şarkı yükleyin. Yapay zeka onu saniyeler içinde vokallere, davullara, basa ve daha fazlasına ayırsın.</p>
+    </div>
 
-      <section id="mixer" class="mixer" aria-label="Miks oynatıcı">
-        <div class="track-head">
-          <div class="album-art"><span>♫</span></div>
-          <div class="track-details">
-            <p class="eyebrow">MİKS KONTROL PANELİ</p>
-            <h2 id="songTitle">Örnek Ses Parçası</h2>
-            <p id="songMeta">4 kanal hazır</p>
+    <!-- Empty upload zone (Uiverse 3D Animated Floating Folder Widget) -->
+    <div class="upload-zone" id="uploadEmptyBox">
+      <!-- Hidden real file input -->
+      <input type="file" id="songFileInput"
+        accept=".mp3,.wav,.flac,.m4a,.aac,.ogg,.mp4,.mov"
+        style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" />
+      
+      <div class="folder-container-widget" id="btnTriggerUpload">
+        <div class="folder">
+          <div class="front-side">
+            <div class="tip"></div>
+            <div class="cover"></div>
           </div>
-          <button id="playButton" class="play-button" aria-label="Oynat"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
+          <div class="back-side cover"></div>
         </div>
-
-        <div class="timeline-wrap">
-          <span id="currentTime">0:00</span>
-          <div class="waveform-container">
-            <canvas id="waveformCanvas" width="700" height="36" class="waveform-canvas"></canvas>
-            <input id="timeline" type="range" min="0" max="100" value="0" aria-label="Şarkı konumu" />
-          </div>
-          <span id="duration">0:00</span>
-        </div>
-
-        <div class="loop-bar">
-          <span class="bar-label">A-B Kesit Döngüsü:</span>
-          <button id="setLoopABtn" class="loop-btn" title="Şu anki zamanı Başlangıç (A) belirle">🅰️ A Koy</button>
-          <button id="setLoopBBtn" class="loop-btn" title="Şu anki zamanı Bitiş (B) belirle">🅱️ B Koy</button>
-          <button id="toggleLoopBtn" class="loop-btn toggle" title="Kesit döngüsünü Aç / Kapat">🔁 Döngü: KAPALI</button>
-          <button id="clearLoopBtn" class="loop-btn reset" title="Döngü noktalarını sıfırla">✖ Temizle</button>
-          <span id="loopBadge" class="loop-badge" hidden>0:00 ➔ 0:00</span>
-        </div>
-
-        <div class="controls-bar">
-          <div class="presets">
-            <span class="bar-label">Hızlı Modlar:</span>
-            <button class="preset-btn" data-preset="karaoke" title="Vokali kapatır">🎤 Karaoke</button>
-            <button class="preset-btn" data-preset="acapella" title="Sadece vokali açık bırakır">🗣️ Acapella</button>
-            <button class="preset-btn" data-preset="drumless" title="Davulu kapatır">🥁 Drumless</button>
-            <button class="preset-btn" data-preset="bassless" title="Bası kapatır">🎸 Bassless</button>
-            <button class="preset-btn reset" data-preset="reset" title="Tüm sesleri varsayılana getirir">🔄 Sıfırla</button>
-          </div>
-          <div class="speed-control">
-            <span class="bar-label">Oynatma Hızı:</span>
-            <input id="speedSlider" type="range" min="0.5" max="2.0" step="0.05" value="1.0" aria-label="Oynatma hızı" />
-            <output id="speedValue">1.0x</output>
-          </div>
-        </div>
-
-        <!-- Ana Efekt Çubuğu (Master FX) -->
-        <div class="master-fx-bar">
-          <div class="pitch-control">
-            <span class="bar-label">Ton (Pitch):</span>
-            <button id="pitchDownBtn" class="pitch-step-btn" title="1 Semiton Pesleştir (-1♭)">-1♭</button>
-            <input id="pitchSlider" type="range" min="-6" max="6" step="1" value="0" aria-label="Ton Transpoze" />
-            <button id="pitchUpBtn" class="pitch-step-btn" title="1 Semiton Dikleştir (+1♯)">+1♯</button>
-            <output id="pitchValue">0 ST</output>
-          </div>
-          <span class="bar-label">Efektler:</span>
-          <label class="fx-chip"><input type="checkbox" id="reverbToggle" /> 🏛️ Reverb</label>
-          <label class="fx-chip"><input type="checkbox" id="echoToggle" /> 📻 Echo</label>
-          <label class="fx-chip"><input type="checkbox" id="spatialToggle" /> 🎧 8D Audio</label>
-        </div>
-
-        <div class="channels">
-          <article class="channel" data-channel="vocal">
-            <div class="channel-icon vocal-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></div>
-            <div class="channel-name"><strong>Vokal <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Ana ses kaydı</span></div>
-            <div class="channel-actions">
-              <button class="mini-button mute" aria-label="Vokali sustur" title="Sustur (Mute)">M</button>
-              <button class="mini-button solo" aria-label="Vokali tek dinle" title="Solo Dinle">S</button>
-              <button class="mini-button download" aria-label="Vokal kanalını indir" title="Vokal kanalını indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-            </div>
-            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Vokal ses seviyesi" />
-            <div class="vu-meter" title="Canlı Vokal Seviyesi"><div class="vu-bar"></div></div>
-            <output>85%</output>
-          </article>
-          <article class="channel" data-channel="drums">
-            <div class="channel-icon drums-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6"/><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M6 8l6-4 6 4"/></svg></div>
-            <div class="channel-name"><strong>Davul <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Ritim ve perküsyon</span></div>
-            <div class="channel-actions">
-              <button class="mini-button mute" aria-label="Davulu sustur" title="Sustur (Mute)">M</button>
-              <button class="mini-button solo" aria-label="Davulu tek dinle" title="Solo Dinle">S</button>
-              <button class="mini-button download" aria-label="Davul kanalını indir" title="Davul kanalını indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-            </div>
-            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Davul ses seviyesi" />
-            <div class="vu-meter" title="Canlı Davul Seviyesi"><div class="vu-bar"></div></div>
-            <output>85%</output>
-          </article>
-          <article class="channel" data-channel="bass">
-            <div class="channel-icon bass-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M2 12h4"/><path d="M2 16h4"/></svg></div>
-            <div class="channel-name"><strong>Bas <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Alçak frekanslar (Bass)</span></div>
-            <div class="channel-actions">
-              <button class="mini-button mute" aria-label="Bası sustur" title="Sustur (Mute)">M</button>
-              <button class="mini-button solo" aria-label="Bası tek dinle" title="Solo Dinle">S</button>
-              <button class="mini-button download" aria-label="Bas kanalını indir" title="Bas kanalını indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-            </div>
-            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Bas ses seviyesi" />
-            <div class="vu-meter" title="Canlı Bas Seviyesi"><div class="vu-bar"></div></div>
-            <output>85%</output>
-          </article>
-          <article class="channel" data-channel="other">
-            <div class="channel-icon other-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12v6"/><path d="M10 12v6"/><path d="M14 12v6"/><path d="M18 12v6"/></svg></div>
-            <div class="channel-name"><strong>Diğer Enstrümanlar <div class="eq-bars"><span></span><span></span><span></span></div></strong><span>Gitar, piyano, synth ve yaylılar</span></div>
-            <div class="channel-actions">
-              <button class="mini-button mute" aria-label="Diğer enstrümanları sustur" title="Sustur (Mute)">M</button>
-              <button class="mini-button solo" aria-label="Diğer enstrümanları tek dinle" title="Solo Dinle">S</button>
-              <button class="mini-button download" aria-label="Diğer enstrümanlar kanalını indir" title="Diğer kanalı indir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-            </div>
-            <input class="volume" type="range" min="0" max="100" value="85" aria-label="Diğer enstrümanlar ses seviyesi" />
-            <div class="vu-meter" title="Canlı Diğer Enstrümanlar Seviyesi"><div class="vu-bar"></div></div>
-            <output>85%</output>
-          </article>
-        </div>
-
-        <div class="export-bar">
-          <div class="format-selection">
-            <label for="exportFormat">Biçim:</label>
-            <select id="exportFormat" class="format-select">
-              <option value="wav">WAV (Yüksek Kalite)</option>
-              <option value="mp3">MP3 (Küçük Boyut)</option>
-            </select>
-          </div>
-          <button id="downloadMixBtn" class="export-btn primary" disabled>⚡ Miksi İndir</button>
-          <button id="downloadZipBtn" class="export-btn secondary" disabled>📦 Tümünü ZIP İndir</button>
-        </div>
-        <p id="status" class="status">Bir ses dosyası yükleyiniz; 4 kanal otomatik olarak hazırlanacaktır.</p>
-      </section>
-    </main>
-
-    <!-- Öğretici Modal Kılavuzu -->
-    <div id="guideModal" class="modal-overlay" hidden>
-      <div class="modal-card">
-        <button id="closeGuideBtn" class="close-modal-btn" onclick="closeGuide()" aria-label="Kapat">✕</button>
-        <div class="modal-header">
-          <span class="modal-badge">KULLANIM KILAVUZU</span>
-          <h2>MixerUp Nasıl Kullanılır?</h2>
-          <p>Stüdyo kalitesinde ses ayrıştırma ve miksaj rehberi</p>
-        </div>
-        <div class="guide-steps">
-          <div class="guide-step">
-            <div class="step-num">1</div>
-            <div class="step-info">
-              <h4>📁 Dosya Yükleme & AI Ayrıştırma</h4>
-              <p>Sisteme MP3, WAV veya M4A dosyanızı yükleyin. Yapay zeka modeli (Demucs) şarkıyı 4 bağımsız kanala (Vokal, Davul, Bas, Diğer) ayırır.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">2</div>
-            <div class="step-info">
-              <h4>🎛️ Kanal Miksajı & Efektler</h4>
-              <p>Her kanalı <strong>M (Mute)</strong> ile susturun veya <strong>S (Solo)</strong> ile tek dinleyin. Reverb, Echo ve 8D Spatial Audio efektlerini deneyin.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">3</div>
-            <div class="step-info">
-              <h4>🎼 Ton (Pitch Transpose) & Hız Ayarları</h4>
-              <p>Şarkının temposunu bozmadan tonunu <strong>-6♭ ile +6♯ semiton</strong> arası transpoze edin. Slider ile oynatma hızını ayarlayın.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">4</div>
-            <div class="step-info">
-              <h4>🔁 A-B Kesit Döngüsü (Pratik Modu)</h4>
-              <p>Şarkı çalarken <strong>A Koy</strong> ve <strong>B Koy</strong> butonlarına basarak İstediğiniz nakarat veya enstrüman bölümünü sürekli döngüye alın.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">5</div>
-            <div class="step-info">
-              <h4>⌨️ Klavye Kısayolları</h4>
-              <div class="kbd-list">
-                <span><kbd>Space</kbd> Oynat / Durdur</span>
-                <span><kbd>←</kbd> 5s Geri</span>
-                <span><kbd>→</kbd> 5s İleri</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="gotItBtn" class="primary-button modal-start-btn" onclick="closeGuide()">Anladım, Başlayalım! 🚀</button>
+        <div class="custom-file-upload">
+          Ses seçmek için dokunun
         </div>
       </div>
     </div>
 
-    <audio id="vocalAudio"></audio>
-    <audio id="drumsAudio"></audio>
-    <audio id="bassAudio"></audio>
-    <audio id="otherAudio"></audio>
-    <script src="app.js?v=1900"></script>
-  </body>
+    <!-- Selected file card -->
+    <div class="file-card" id="uploadSelectedBox" hidden>
+      <div class="file-card-art" id="fileArtGradient">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(255,255,255,0.85)"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>
+      </div>
+      <div class="file-card-body">
+        <p id="selectedFileName" class="file-name">Şarkı</p>
+        <p id="selectedFileMeta" class="file-meta">0 MB</p>
+        <canvas id="previewWaveformCanvas" class="preview-wave"></canvas>
+      </div>
+      <button id="btnChangeFile" class="close-btn" title="Remove">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <button id="btnSplitAi" class="star-sparkle-btn" disabled>
+      <span class="btn-text">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Yapay Zeka ile Ayır
+      </span>
+      <svg class="star-1" viewBox="0 0 24 24"><path class="fil0" d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+      <svg class="star-2" viewBox="0 0 24 24"><path class="fil0" d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+      <svg class="star-3" viewBox="0 0 24 24"><path class="fil0" d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+      <svg class="star-4" viewBox="0 0 24 24"><path class="fil0" d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+      <svg class="star-5" viewBox="0 0 24 24"><path class="fil0" d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+      <svg class="star-6" viewBox="0 0 24 24"><path class="fil0" d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+    </button>
+
+  </section>
+
+
+  <!-- ===================== PROCESSING ===================== -->
+  <section id="processingScreen" class="screen" hidden>
+    <div class="proc-wrap">
+
+      <!-- From Uiverse.io by Nawsome -->
+      <div aria-label="Orange and tan hamster running in a metal wheel" role="img" class="wheel-and-hamster">
+        <div class="wheel"></div>
+        <div class="hamster">
+          <div class="hamster__body">
+            <div class="hamster__head">
+              <div class="hamster__ear"></div>
+              <div class="hamster__eye"></div>
+              <div class="hamster__nose"></div>
+            </div>
+            <div class="hamster__limb hamster__limb--fr"></div>
+            <div class="hamster__limb hamster__limb--fl"></div>
+            <div class="hamster__limb hamster__limb--br"></div>
+            <div class="hamster__limb hamster__limb--bl"></div>
+            <div class="hamster__tail"></div>
+          </div>
+        </div>
+        <div class="spoke"></div>
+      </div>
+
+      <div class="proc-orb-wrap" style="height: auto; margin-bottom: 0;">
+        <div class="proc-pct" id="procPct" style="font-size: 32px;">0%</div>
+      </div>
+
+      <h2 class="proc-title" id="procTitle">Şarkı analiz ediliyor…</h2>
+      <p class="proc-sub" id="procSub">Nöral ayırma işlemi devam ediyor</p>
+
+      <ul class="step-list">
+        <li class="step-item step-active" id="checkStep1">
+          <span class="step-indicator"></span>
+          <span>Ses yükleniyor</span>
+        </li>
+        <li class="step-item" id="checkStep2">
+          <span class="step-indicator"></span>
+          <span>Demucs yapay zeka modeli çalıştırılıyor</span>
+        </li>
+        <li class="step-item" id="checkStep3">
+          <span class="step-indicator"></span>
+          <span>Kanal katmanları izole ediliyor</span>
+        </li>
+        <li class="step-item" id="checkStep4">
+          <span class="step-indicator"></span>
+          <span>Miks ekranınız hazırlanıyor</span>
+        </li>
+      </ul>
+
+    </div>
+  </section>
+
+
+  <!-- ===================== MIXER ===================== -->
+  <section id="mixerScreen" class="screen" hidden>
+
+    <div class="mixer-bar">
+      <button id="btnBackHome" class="icon-pill" title="Back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="mixer-bar-center">
+        <span class="mixer-bar-title">Stüdyo</span>
+      </div>
+      <button id="btnOpenExportSheet" class="icon-pill" title="Export">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </button>
+    </div>
+
+    <!-- iOS 18 Glass Player Card Widget -->
+    <div class="ios-player-card">
+      <div class="ios-card-bg-artwork" id="iosCardArtwork"></div>
+      <div class="ios-card-overlay"></div>
+
+      <!-- Top Row: Artist & Track Header -->
+      <div class="ios-card-header">
+        <div class="ios-artist-info">
+          <div class="ios-track-details">
+            <h4 id="mixerSongTitle" class="ios-track-title">Şarkı</h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- Uiverse Liquid Morphing Orb (Replacing wave visualizer) -->
+      <div class="loader-wrap">
+        <canvas id="visualizerCanvas" style="display:none;"></canvas>
+        <div class="loader">
+          <div class="box"></div>
+          <svg width="0" height="0">
+            <defs>
+              <filter id="clipping">
+                <feGaussianBlur stdDeviation="7" result="blur"></feGaussianBlur>
+                <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo"></feColorMatrix>
+                <feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite>
+              </filter>
+            </defs>
+            <mask id="clipping">
+              <g class="polygons">
+                <polygon points="50,10 90,90 10,90"></polygon>
+                <polygon points="20,20 80,20 50,80"></polygon>
+                <polygon points="30,10 70,10 50,90"></polygon>
+                <polygon points="50,20 90,80 10,80"></polygon>
+                <polygon points="10,50 90,50 50,10"></polygon>
+                <polygon points="50,50 80,80 20,80"></polygon>
+                <polygon points="40,30 60,30 50,70"></polygon>
+              </g>
+            </mask>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Progress & Time -->
+      <div class="seek-wrap">
+        <div class="seek-time-row" style="margin-bottom: 6px;">
+          <span id="timeCur" class="time-label">0:00</span>
+          <span id="timeDur" class="time-label">0:00</span>
+        </div>
+        <div class="seek-bar-container" id="waveformContainer">
+          <div class="seek-bar-track">
+            <div class="seek-bar-fill" id="waveformProgress"></div>
+            <div class="seek-bar-thumb" id="waveformThumb"></div>
+          </div>
+          <input type="range" id="seekSlider" class="seekbar" min="0" max="1000" value="0" step="1" style="display:none;" />
+        </div>
+      </div>
+
+      <!-- Bottom Control Discs (⏮ ▶/⏸ ⏭) -->
+      <div class="ios-card-controls">
+        <button class="ios-ctrl-disc" id="btnSkipBack" title="Geri –10s">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="19,20 9,12 19,4"/><rect x="4" y="4" width="3" height="16" rx="1"/></svg>
+        </button>
+        <button class="ios-ctrl-disc play-master-disc" id="btnMasterPlayPause" title="Oynat / Duraklat">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><polygon points="6,4 20,12 6,20"/></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" width="28" height="28" style="display:none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        </button>
+        <button class="ios-ctrl-disc" id="btnSkipFwd" title="İleri +10s">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,4 15,12 5,20"/><rect x="17" y="4" width="3" height="16" rx="1"/></svg>
+        </button>
+      </div>
+
+      <!-- High Quality Animated Walking Cat on Bottom Rim -->
+      <div class="walking-cat-bottom" aria-hidden="true">
+        <img src="https://www.kasandbox.org/programming-images/misc/cat-walk.gif" alt="Walking Cat" class="real-cat-gif" />
+      </div>
+    </div>
+
+    <!-- Preset Pills (Uiverse Ripple Button) -->
+    <div class="presets-scroll">
+      <button class="pill active" data-preset="full"><span>Orijinal</span></button>
+      <button class="pill" data-preset="karaoke"><span>Karaoke</span></button>
+      <button class="pill" data-preset="acapella"><span>Akapella</span></button>
+      <button class="pill" data-preset="drumless"><span>Davulsuz</span></button>
+      <button class="pill" data-preset="bassless"><span>Bassız</span></button>
+    </div>
+
+    <!-- Stems -->
+    <div class="stems-grid">
+
+      <div class="stem-card" data-stem="vocals">
+        <div class="stem-card-head">
+          <div class="stem-icon si-vocal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+          <div class="stem-info">
+            <span class="stem-name">Vokal</span>
+            <div class="peak-meter"><div class="peak-fill" id="peakVocals"></div></div>
+          </div>
+          <button class="stem-fx-btn" id="btnReverb" title="Yankı Ekle">
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5v14M22 8v8M7 5v14M2 8v8"/></svg></span>
+          </button>
+          <div class="stem-btns">
+            <button class="s-btn mute-btn" id="btnMuteVocals"><span>M</span></button>
+            <button class="s-btn solo-btn" id="btnSoloVocals"><span>S</span></button>
+          </div>
+        </div>
+        <input type="range" class="vol-slider" id="sliderVocals" min="0" max="1" step="0.01" value="1" />
+        <audio id="audioVocals" preload="auto" crossorigin="anonymous"></audio>
+      </div>
+
+      <div class="stem-card" data-stem="drums">
+        <div class="stem-card-head">
+          <div class="stem-icon si-drums">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="8" rx="9" ry="4"/><path d="M3 8v8c0 2.21 4.03 4 9 4s9-1.79 9-4V8"/><path d="M3 12c0 2.21 4.03 4 9 4s9-1.79 9-4"/></svg>
+          </div>
+          <div class="stem-info">
+            <span class="stem-name">Davul</span>
+            <div class="peak-meter"><div class="peak-fill" id="peakDrums"></div></div>
+          </div>
+          <div class="stem-btns">
+            <button class="s-btn mute-btn" id="btnMuteDrums"><span>M</span></button>
+            <button class="s-btn solo-btn" id="btnSoloDrums"><span>S</span></button>
+          </div>
+        </div>
+        <input type="range" class="vol-slider" id="sliderDrums" min="0" max="1" step="0.01" value="1" />
+        <audio id="audioDrums" preload="auto" crossorigin="anonymous"></audio>
+      </div>
+
+      <div class="stem-card" data-stem="bass">
+        <div class="stem-card-head">
+          <div class="stem-icon si-bass">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <div class="stem-info">
+            <span class="stem-name">Bas</span>
+            <div class="peak-meter"><div class="peak-fill" id="peakBass"></div></div>
+          </div>
+          <div class="stem-btns">
+            <button class="s-btn mute-btn" id="btnMuteBass"><span>M</span></button>
+            <button class="s-btn solo-btn" id="btnSoloBass"><span>S</span></button>
+          </div>
+        </div>
+        <input type="range" class="vol-slider" id="sliderBass" min="0" max="1" step="0.01" value="1" />
+        <audio id="audioBass" preload="auto" crossorigin="anonymous"></audio>
+      </div>
+
+      <div class="stem-card" data-stem="instruments">
+        <div class="stem-card-head">
+          <div class="stem-icon si-other">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="7" y1="5" x2="7" y2="9"/><line x1="17" y1="5" x2="17" y2="9"/></svg>
+          </div>
+          <div class="stem-info">
+            <span class="stem-name">Diğer</span>
+            <div class="peak-meter"><div class="peak-fill" id="peakInstruments"></div></div>
+          </div>
+          <div class="stem-btns">
+            <button class="s-btn mute-btn" id="btnMuteInstruments"><span>M</span></button>
+            <button class="s-btn solo-btn" id="btnSoloInstruments"><span>S</span></button>
+          </div>
+        </div>
+        <input type="range" class="vol-slider" id="sliderInstruments" min="0" max="1" step="0.01" value="1" />
+        <audio id="audioInstruments" preload="auto" crossorigin="anonymous"></audio>
+      </div>
+
+    </div><!-- stems-grid -->
+
+  </section>
+
+
+  <!-- ===================== LIBRARY ===================== -->
+  <section id="libraryScreen" class="screen" hidden>
+    <header class="page-header">
+      <h2>Kütüphane</h2>
+    </header>
+    <div id="libraryEmptyBox" class="empty-state">
+      <div class="empty-icon">📂</div>
+      <p>Henüz işlenmiş şarkı yok</p>
+      <button id="btnNavUploadTrack" class="cta-btn" style="margin-top:16px">Şarkı Yükle</button>
+    </div>
+    <div id="libraryList" class="library-list"></div>
+  </section>
+
+  <!-- ===================== SETTINGS ===================== -->
+  <section id="settingsScreen" class="screen" hidden>
+    <header class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>Ayarlar</h2>
+      <!-- Sun & Moon Sky Theme Switcher (From Uiverse.io) --> 
+      <label class="theme-switch" for="themeCheckbox" title="Koyu / Açık Tema Değiştir">
+        <input type="checkbox" id="themeCheckbox" class="theme-switch__checkbox" />
+        <div class="theme-switch__container">
+          <div class="theme-switch__shooting-star"></div>
+          <div class="theme-switch__shooting-star-2"></div>
+          <div class="theme-switch__meteor"></div>
+          <div class="theme-switch__aurora"></div>
+          <div class="theme-switch__comets">
+            <div class="comet"></div>
+            <div class="comet"></div>
+          </div>
+          <div class="theme-switch__stars-cluster">
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+          </div>
+          <div class="theme-switch__circle-container">
+            <div class="theme-switch__sun-moon-container">
+              <div class="theme-switch__moon">
+                <div class="theme-switch__spot"></div>
+                <div class="theme-switch__spot"></div>
+                <div class="theme-switch__spot"></div>
+              </div>
+            </div>
+          </div>
+          <div class="theme-switch__clouds"></div>
+        </div>
+      </label>
+    </header>
+
+    <!-- Group 1: SES & AI İŞLEME MOTORU -->
+    <div class="settings-sec-title">🎧 SES & YAPAY ZEKA MOTORU</div>
+    <div class="settings-group">
+      
+      <!-- AI Model Selection Accordion -->
+      <div class="settings-accordion-item" id="accModel">
+        <div class="settings-row accordion-header">
+          <div class="settings-label-wrap">
+            <span class="settings-icon icon-ai">🤖</span>
+            <span>Yapay Zeka Modeli</span>
+          </div>
+          <div class="accordion-sub-wrap">
+            <span class="sv-val" id="valModel">Demucs Standard</span>
+            <span class="acc-chevron">›</span>
+          </div>
+        </div>
+        <div class="accordion-content">
+          <div class="radio-container" style="--total-radio: 2;">
+            <input type="radio" id="modelDemucsStd" name="aiModelRadio" value="htdemucs" checked />
+            <label for="modelDemucsStd">Demucs Standard (Dengeli)</label>
+
+            <input type="radio" id="modelDemucsFt" name="aiModelRadio" value="htdemucs_ft" />
+            <label for="modelDemucsFt">Demucs Studio FT (Derin İzolasyon)</label>
+
+            <div class="glider-container">
+              <div class="glider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sample Rate Selection Accordion -->
+      <div class="settings-accordion-item" id="accSampleRate">
+        <div class="settings-row accordion-header">
+          <div class="settings-label-wrap">
+            <span class="settings-icon icon-audio">🎛️</span>
+            <span>Stüdyo Örnekleme Hızı</span>
+          </div>
+          <div class="accordion-sub-wrap">
+            <span class="sv-val" id="valSampleRate">48.0 kHz</span>
+            <span class="acc-chevron">›</span>
+          </div>
+        </div>
+        <div class="accordion-content">
+          <div class="radio-container" style="--total-radio: 3;">
+            <input type="radio" id="sr441" name="sampleRateRadio" value="44100" />
+            <label for="sr441">44.1 kHz (CD Kalitesi)</label>
+
+            <input type="radio" id="sr480" name="sampleRateRadio" value="48000" checked />
+            <label for="sr480">48.0 kHz (Stüdyo Kalitesi)</label>
+
+            <input type="radio" id="sr960" name="sampleRateRadio" value="96000" />
+            <label for="sr960">96.0 kHz (Hi-Res Audio)</label>
+
+            <div class="glider-container">
+              <div class="glider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label-wrap">
+          <span class="settings-icon icon-limiter">⚡</span>
+          <span>Soft Limiter (Ses Koruması)</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="settingsLimiterToggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Group 2: GÖRÜNÜM & GÖRSELLEŞTİRİCİ -->
+    <div class="settings-sec-title">🎨 GÖRÜNÜM & EFEKTLER</div>
+    <div class="settings-group">
+      <!-- Visualizer Style Accordion -->
+      <div class="settings-accordion-item" id="accVisualizer">
+        <div class="settings-row accordion-header">
+          <div class="settings-label-wrap">
+            <span class="settings-icon icon-visual">🌊</span>
+            <span>Görselleştirici Stili</span>
+          </div>
+          <div class="accordion-sub-wrap">
+            <span class="sv-val" id="valVisualizer">Sıvı Dalgalar</span>
+            <span class="acc-chevron">›</span>
+          </div>
+        </div>
+        <div class="accordion-content">
+          <div class="radio-container" style="--total-radio: 3;">
+            <input type="radio" id="visLiquid" name="visualizerRadio" value="liquid" checked />
+            <label for="visLiquid">Sıvı Dalgalar (Siri Waves)</label>
+
+            <input type="radio" id="visSpectrum" name="visualizerRadio" value="spectrum" />
+            <label for="visSpectrum">Frekans Barları (Spectrum)</label>
+
+            <input type="radio" id="visAurora" name="visualizerRadio" value="aurora" />
+            <label for="visAurora">Siber Küre (Aurora Orb)</label>
+
+            <div class="glider-container">
+              <div class="glider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group 3: DEPOLAMA & KÜTÜPHANE -->
+    <div class="settings-sec-title">💾 DEPOLAMA & KÜTÜPHANE</div>
+    <div class="settings-group">
+      <!-- Default Format Accordion -->
+      <div class="settings-accordion-item" id="accFormat">
+        <div class="settings-row accordion-header">
+          <div class="settings-label-wrap">
+            <span class="settings-icon icon-format">🎼</span>
+            <span>Varsayılan İndirme Biçimi</span>
+          </div>
+          <div class="accordion-sub-wrap">
+            <span class="sv-val" id="valFormat">WAV</span>
+            <span class="acc-chevron">›</span>
+          </div>
+        </div>
+        <div class="accordion-content">
+          <div class="radio-container" style="--total-radio: 3;">
+            <input type="radio" id="fmtWav" name="formatRadio" value="wav" checked />
+            <label for="fmtWav">WAV (Kayıpsız PCM)</label>
+
+            <input type="radio" id="fmtMp3" name="formatRadio" value="mp3" />
+            <label for="fmtMp3">MP3 (320 kbps HQ)</label>
+
+            <input type="radio" id="fmtFlac" name="formatRadio" value="flac" />
+            <label for="fmtFlac">FLAC (Lossless Audio)</label>
+
+            <div class="glider-container">
+              <div class="glider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label-wrap">
+          <span class="settings-icon icon-storage">📁</span>
+          <span>Kütüphane Önbelleği</span>
+        </div>
+        <span id="settingsCacheSize" class="sv">0.0 MB</span>
+      </div>
+      <div class="settings-row clickable-row" id="btnClearCache">
+        <div class="settings-label-wrap">
+          <span class="settings-icon icon-trash">🗑️</span>
+          <span style="color:#ef4444; font-weight:700;">Önbelleği & Kütüphaneyi Temizle</span>
+        </div>
+        <span class="sv-arrow">›</span>
+      </div>
+    </div>
+
+    <!-- Group 4: SİSTEM BİLGİSİ -->
+    <div class="settings-sec-title">ℹ️ UYGULAMA BİLGİSİ</div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="settings-label-wrap">
+          <span class="settings-icon icon-ver">🚀</span>
+          <span>MixerUp Sürümü</span>
+        </div>
+        <span class="sv">1.0.0 Beta</span>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label-wrap">
+          <span class="settings-icon icon-ai">🧠</span>
+          <span>Nöral AI Motoru</span>
+        </div>
+        <span class="sv">Meta Demucs v4</span>
+      </div>
+      <div class="settings-row">
+        <div class="settings-label-wrap">
+          <span class="settings-icon icon-net">🌐</span>
+          <span>Yerel Sunucu Durumu</span>
+        </div>
+        <span class="sv status-online">● Bağlı (Localhost:8000)</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Circular Tabs Bottom Nav (From Uiverse.io by uiverse-astronaut) -->
+  <nav class="bottom-nav">
+    <div class="cir-tabs">
+      <input type="radio" id="tabHome" name="cirNav" class="cir-tabs__r" checked />
+      <label for="tabHome" id="navTabHome" class="cir-tabs__t">Miks</label>
+
+      <input type="radio" id="tabLibrary" name="cirNav" class="cir-tabs__r" />
+      <label for="tabLibrary" id="navTabLibrary" class="cir-tabs__t">Kütüphane</label>
+
+      <input type="radio" id="tabSettings" name="cirNav" class="cir-tabs__r" />
+      <label for="tabSettings" id="navTabSettings" class="cir-tabs__t">Ayarlar</label>
+    </div>
+  </nav>
+
+  <!-- Export Sheet -->
+  <div id="exportSheetOverlay" class="sheet-overlay">
+    <div class="sheet" role="dialog">
+      <div class="sheet-pill"></div>
+      <div class="sheet-hd">
+        <h3>Dışa Aktar</h3>
+        <button id="btnCloseExportSheet" class="icon-pill" style="border:none;background:var(--s2)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="sheet-sec-label">Çıktı Formatı</div>
+      <div class="fmt-row">
+        <button id="fmtBtnWav" class="fmt-btn active">WAV<span>Kayıpsız</span></button>
+        <button id="fmtBtnMp3" class="fmt-btn">MP3<span>320kbps</span></button>
+      </div>
+      <div class="sheet-actions">
+        <button id="btnExportAllZip" class="cta-btn ghost-btn">📦 ZIP olarak indir (4 Dosya)</button>
+        <button id="btnExportMixSingle" class="cta-btn">🎧 Geçerli Miksi İndir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back To Top Floating Button -->
+  <button id="btnBackToTop" class="back-to-top-btn" title="Yukarı Çık" aria-label="Yukarı Çık">
+    <svg class="svgIcon" viewBox="0 0 384 512">
+      <path d="M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 133.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V133.2l105.4 105.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"/>
+    </svg>
+  </button>
+
+</div><!-- #app -->
+
+<script src="ios_app.js?v=8000"></script>
+</body>
 </html>
